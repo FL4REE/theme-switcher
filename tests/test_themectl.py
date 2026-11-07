@@ -114,6 +114,18 @@ class ThemectlTest(unittest.TestCase):
         second = (self.env.root / "state/current").read_text().strip()
         self.assertNotEqual(first, second)
 
+    def test_list_json(self):
+        import contextlib, io
+        self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")
+        self.env.run("apply", "x", "--only", "ghostty")
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            self.assertEqual(self.env.run("list", "--json"), 0)
+        data = json.loads(buf.getvalue())
+        self.assertEqual(data[0]["id"], "x")
+        self.assertTrue(data[0]["current"])
+        self.assertEqual(data[0]["accent"], "#ff8800")
+
     def test_light_variant_is_light(self):
         self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")
         t = Theme.load(self.env.root / "themes/x")

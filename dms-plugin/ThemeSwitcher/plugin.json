@@ -1,0 +1,17 @@
+{
+    "id": "themeSwitcher",
+    "name": "Theme Switcher",
+    "description": "Gespeicherte themectl-Themes im Launcher suchen und anwenden",
+    "version": "0.1.0",
+    "license": "MIT",
+    "author": "Erik (FL4REE)",
+    "icon": "palette",
+    "type": "launcher",
+    "trigger": "~",
+    "component": "./ThemeSwitcherLauncher.qml",
+    "requires_dms": ">=2.0.0",
+    "permissions": [
+        "settings_read",
+        "settings_write"
+    ]
+}

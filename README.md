@@ -37,6 +37,13 @@ themectl edit nachtblau             # theme.json im Editor feinjustieren
 Teilen und sichern: `themectl export <name>` erzeugt ein `.tar.gz`,
 `themectl import <datei|ordner|theme.json>` liest es wieder ein.
 
+## Im DMS-Launcher (Super+Space)
+
+`install.sh` verlinkt ein Launcher-Plugin nach `~/.config/dms/plugins/ThemeSwitcher`.
+Einmal in DMS unter **Einstellungen → Plugins** auf „Scan for Plugins“ klicken
+und **Theme Switcher** einschalten. Danach im Launcher `~` tippen, ein Theme
+auswählen und mit Enter anwenden. Mehr dazu in [`dms-plugin/README.md`](dms-plugin/README.md).
+
 ## Hotkeys (Hyprland-Lua)
 
 In `~/.config/hypr/dms/binds-user.lua`:

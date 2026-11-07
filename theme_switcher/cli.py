@@ -92,6 +92,20 @@ def _print_swatch(theme: Theme) -> str:
 def cmd_list(args, cfg, store):
     current = store.current()
     themes = store.list()
+    if getattr(args, "json", False):
+        print(json.dumps([
+            {
+                "id": t.path.name if t.path else t.name,
+                "name": t.name,
+                "mode": t.mode,
+                "accent": t.palette.accent,
+                "background": t.palette.background,
+                "source": t.source or "",
+                "current": bool(t.path and t.path.name == current),
+            }
+            for t in themes
+        ], ensure_ascii=False))
+        return 0
     if not themes:
         print("Noch keine Themes. Lege eins an mit 'themectl save <name>' oder 'themectl aether import --all'.")
         return 0
@@ -325,7 +339,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--config", type=Path, help="Pfad zur config.toml")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("list", aliases=["ls"], help="Gespeicherte Themes anzeigen").set_defaults(fn=cmd_list)
+    s = sub.add_parser("list", aliases=["ls"], help="Gespeicherte Themes anzeigen")
+    s.add_argument("--json", action="store_true", help="maschinenlesbar (für das DMS-Plugin)")
+    s.set_defaults(fn=cmd_list)
     sub.add_parser("current", help="Aktives Theme anzeigen").set_defaults(fn=cmd_current)
 
     s = sub.add_parser("show", help="Theme-Inhalt anzeigen")

@@ -17,4 +17,9 @@ fi
 
 mkdir -p "$HOME/.config/theme-switcher"
 [ -f "$HOME/.config/theme-switcher/config.toml" ] || cp examples/config.toml "$HOME/.config/theme-switcher/config.toml"
+# DMS-Launcher-Plugin verlinken (Super+Space, dann "~")
+mkdir -p "$HOME/.config/dms/plugins"
+ln -sfn "$PWD/dms-plugin/ThemeSwitcher" "$HOME/.config/dms/plugins/ThemeSwitcher"
+echo "✓ DMS-Plugin verlinkt. In DMS: Einstellungen → Plugins → Scan → 'Theme Switcher' aktivieren"
+
 echo "✓ Fertig. Probier: themectl --help"

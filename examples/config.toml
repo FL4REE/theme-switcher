@@ -13,6 +13,12 @@ starship = true   # Palette "theme_switcher" in ~/.config/starship.toml
 # theme   = Icon-Theme aus dem jeweiligen Theme (z. B. Omarchy icons.theme)
 style = "adwaita"
 
+[pokefetch]
+# wie viele passende Pokédex-Farben übergeben werden
+count = 2
+# Namen, die pokefetch-color erwartet (Standard: deutsch)
+# names = { green = "gruen", white = "weiss" }
+
 [paths]
 # themes_dir = "~/.local/share/theme-switcher/themes"
 # aether_dir = "~/.config/aether"

@@ -31,6 +31,8 @@ DEFAULT_TARGETS = {
     "icons": True,
     # Neovim-Farbschema "theme-switcher" (colors/theme-switcher.lua)
     "nvim": True,
+    # pokefetch: fish-Variable pokefetch_farben passend zum Akzent setzen
+    "pokefetch": True,
 }
 
 
@@ -49,6 +51,9 @@ class Config:
     post_apply: list[str] = field(default_factory=list)
     # "adwaita" (Adwaita in Akzentfarbe), "yaru" oder "theme" (icon_theme aus dem Theme)
     icon_style: str = "adwaita"
+    # pokefetch: wie viele Pokédex-Farben und wie sie heißen (siehe targets/pokefetch.py)
+    pokefetch_count: int = 2
+    pokefetch_names: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path: Path | None = None) -> "Config":
@@ -63,6 +68,10 @@ class Config:
                 setattr(cfg, key, Path(paths[key]).expanduser())
         cfg.targets.update({k: bool(v) for k, v in data.get("targets", {}).items()})
         cfg.post_apply = list(data.get("hooks", {}).get("post_apply", []))
+        poke = data.get("pokefetch", {})
+        if isinstance(poke.get("count"), int) and poke["count"] > 0:
+            cfg.pokefetch_count = poke["count"]
+        cfg.pokefetch_names.update({str(k): str(v) for k, v in poke.get("names", {}).items()})
         style = data.get("icons", {}).get("style")
         if style in ("adwaita", "yaru", "theme"):
             cfg.icon_style = style

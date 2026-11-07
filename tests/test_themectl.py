@@ -310,6 +310,31 @@ class OmarchySearchTest(unittest.TestCase):
         self.assertEqual(res[0]["url"], "https://github.com/a/omarchy-nord-theme")
 
 
+class PokefetchTest(unittest.TestCase):
+    def test_pick_colors(self):
+        from theme_switcher.model import Palette
+        from theme_switcher.targets.pokefetch import pick_colors
+        mk = lambda acc: Theme(name="t", palette=Palette.from_ansi(ANSI, {"accent": acc}))
+        self.assertEqual(set(pick_colors(mk("#78824b"), 2)), {"green", "yellow"})  # Miasma-Oliv
+        self.assertEqual(pick_colors(mk("#89ddff"), 1), ["blue"])      # Poimandres
+        self.assertEqual(pick_colors(mk("#ff9e64"), 1)[0] in ("brown", "red", "yellow"), True)
+        self.assertNotIn("gray", pick_colors(mk("#ff9e64"), 3))       # bunt -> keine Grautöne
+        self.assertIn(pick_colors(mk("#888888"), 1)[0], ("gray", "white", "black"))
+
+    def test_dry_run_uses_names(self):
+        env = Env()
+        try:
+            env.cfg.write_text(env.cfg.read_text() + '\n[pokefetch]\ncount = 1\nnames = { green = "gruen" }\n')
+            env.run("create", "x", "--bg", "#101014", "--accent", "#4caf50")
+            import contextlib, io
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                env.run("apply", "x", "--only", "pokefetch", "--dry-run")
+            self.assertIn("pokefetch_farben = gruen", buf.getvalue())
+        finally:
+            env.tmp.cleanup()
+
+
 class IconsTest(unittest.TestCase):
     def test_nearest_yaru(self):
         from theme_switcher.targets.icons import nearest_yaru

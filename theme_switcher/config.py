@@ -25,6 +25,8 @@ DEFAULT_TARGETS = {
     "hyprland": False,
     # Ghostty-Theme-Datei schreiben (config muss 'theme = theme-switcher' enthalten)
     "ghostty": False,
+    # Starship-Prompt: Palette "theme_switcher" in starship.toml setzen
+    "starship": True,
 }
 
 
@@ -36,6 +38,7 @@ class Config:
     hypr_dir: Path = CONFIG_HOME / "hypr"
     aether_dir: Path = CONFIG_HOME / "aether"
     ghostty_dir: Path = CONFIG_HOME / "ghostty"
+    starship_file: Path = CONFIG_HOME / "starship.toml"
     targets: dict[str, bool] = field(default_factory=lambda: dict(DEFAULT_TARGETS))
     # Befehle, die nach dem Anwenden ausgeführt werden ({name}, {dir} werden ersetzt)
     post_apply: list[str] = field(default_factory=list)
@@ -48,7 +51,7 @@ class Config:
             return cfg
         data = tomllib.loads(path.read_text())
         paths = data.get("paths", {})
-        for key in ("themes_dir", "state_dir", "dms_dir", "hypr_dir", "aether_dir", "ghostty_dir"):
+        for key in ("themes_dir", "state_dir", "dms_dir", "hypr_dir", "aether_dir", "ghostty_dir", "starship_file"):
             if key in paths:
                 setattr(cfg, key, Path(paths[key]).expanduser())
         cfg.targets.update({k: bool(v) for k, v in data.get("targets", {}).items()})

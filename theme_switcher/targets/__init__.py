@@ -9,13 +9,14 @@ from __future__ import annotations
 import shutil
 import subprocess
 
-from . import dms, ghostty, hyprland, wallpaper
+from . import dms, ghostty, hyprland, starship, wallpaper
 
 TARGETS = {
     "dms": dms.apply,
     "wallpaper": wallpaper.apply,
     "hyprland": hyprland.apply,
     "ghostty": ghostty.apply,
+    "starship": starship.apply,
 }
 
 

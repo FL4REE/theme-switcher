@@ -55,6 +55,7 @@ dms_dir = "{root}/dms"
 hypr_dir = "{root}/hypr"
 aether_dir = "{root}/aether"
 ghostty_dir = "{root}/ghostty"
+starship_file = "{root}/starship.toml"
 [targets]
 wallpaper = false
 hyprland = true
@@ -145,6 +146,50 @@ class ThemectlTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StarshipTest(unittest.TestCase):
+    def setUp(self):
+        self._path = os.environ.get("PATH", "")
+        self.env = Env()
+        self.cfg = self.env.root / "starship.toml"
+        self.cfg.write_text(
+            "\"$schema\" = 'https://starship.rs/config-schema.json'\n"
+            'format = "[](red)$os[](bg:peach fg:red)"\n'
+            "palette = 'catppuccin_mocha'\n\n"
+            '[os]\nstyle = "bg:red fg:crust"\n\n'
+            '[palettes.catppuccin_mocha]\nred = "#f38ba8"\n'
+        )
+
+    def tearDown(self):
+        os.environ["PATH"] = self._path
+        self.env.tmp.cleanup()
+
+    def test_palette_switch_and_idempotent(self):
+        import tomllib
+        self.env.run("aether", "import", "forest")
+        self.assertEqual(self.env.run("apply", "forest", "--only", "starship"), 0)
+        self.env.run("create", "zwei", "--bg", "#101014", "--accent", "#ff8800")
+        self.assertEqual(self.env.run("apply", "zwei", "--only", "starship"), 0)
+        text = self.cfg.read_text()
+        data = tomllib.loads(text)  # muss gültiges TOML bleiben
+        self.assertEqual(data["palette"], "theme_switcher")
+        self.assertEqual(text.count("[palettes.theme_switcher]"), 1)
+        self.assertIn("catppuccin_mocha", data["palettes"])  # Original bleibt erhalten
+        pal = data["palettes"]["theme_switcher"]
+        for key in ("red", "peach", "yellow", "green", "sapphire", "lavender", "crust", "color_bg1"):
+            self.assertIn(key, pal)
+        self.assertEqual(pal["accent"], "#ff8800")
+        self.assertTrue((self.env.root / "starship.toml.backup-theme-switcher").exists())
+
+    def test_no_palette_line_inserted_before_tables(self):
+        import tomllib
+        self.cfg.write_text('# Kommentar\n[character]\nsuccess_symbol = "[>](green)"\n')
+        self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")
+        self.env.run("apply", "x", "--only", "starship")
+        data = tomllib.loads(self.cfg.read_text())
+        self.assertEqual(data["palette"], "theme_switcher")
+        self.assertIn("character", data)
 
 
 class OmarchyTest(unittest.TestCase):

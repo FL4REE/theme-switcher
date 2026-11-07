@@ -71,6 +71,7 @@ einem schwebenden Ghostty-Fenster. Nach dem Wechsel kommt eine Benachrichtigung.
 | `wallpaper` | an       | `dms ipc call wallpaper set <bild>`, falls das Theme ein Bild hat |
 | `hyprland`  | aus      | eigene `~/.config/hypr/theme-switcher.lua` + `hyprctl reload`. Nur nötig, wenn du Rahmenfarben unabhängig von DMS willst. Dann in `hyprland.lua` nach `require("dms.colors")` eintragen: `pcall(require, "theme-switcher")` |
 | `ghostty`   | aus      | `~/.config/ghostty/themes/theme-switcher`. In der Ghostty-Config einmal `theme = theme-switcher` setzen. |
+| `starship`  | an       | setzt `palette = "theme_switcher"` in `~/.config/starship.toml` und schreibt einen markierten Block `[palettes.theme_switcher]` ans Ende. Er enthält die Farbnamen der Presets Catppuccin-Powerline (`red`, `peach`, `sapphire`, `crust` …) und Gruvbox-Rainbow (`color_bg1` …) sowie `red`, `green`, `accent` usw. Dein bisheriger Palettenblock bleibt stehen. Beim ersten Mal wird `starship.toml.backup-theme-switcher` angelegt. Farben, die in der Config fest als Hex-Wert stehen, ändern sich nicht. |
 
 Ziele schaltest du in `~/.config/theme-switcher/config.toml` (Vorlage:
 [`examples/config.toml`](examples/config.toml)) oder einmalig mit

@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import __version__, aether
+from . import __version__, aether, omarchy
 from . import colors as c
 from .config import Config
 from .model import Palette, Theme
@@ -279,6 +279,25 @@ def _terminal_cmd(inner: list[str]) -> list[str] | None:
     return None
 
 
+def cmd_omarchy(args, cfg, store):
+    with omarchy.Source(args.source) as src:
+        name = args.name or omarchy.default_name(src.path, src.repo_name)
+        theme = omarchy.theme_from_dir(src.path, name, args.wallpaper)
+        theme.source = f"omarchy:{args.source}"
+        images = omarchy.find_wallpapers(src.path)
+        chosen = Path(theme.wallpaper).name if theme.wallpaper else "-"
+        d = store.save(theme, overwrite=args.force)  # kopiert das Wallpaper, solange der Klon noch existiert
+    print(f"✓ {theme.name} → {d}")
+    if len(images) > 1:
+        print(f"  {len(images)} Hintergründe im Theme, genommen: {chosen}")
+        print("  Anderen wählen: --wallpaper <Nummer|Teil des Namens> -f")
+        for i, img in enumerate(images, 1):
+            print(f"    {i:>2}. {img.name}")
+    if args.apply:
+        return apply_theme(store.get(theme.name), cfg, store, None, False)
+    return 0
+
+
 def cmd_pick(args, cfg, store):
     names = [t.path.name for t in store.list() if t.path]
     if not names:
@@ -401,6 +420,16 @@ def build_parser() -> argparse.ArgumentParser:
     ai.add_argument("--apply", action="store_true", help="direkt anwenden")
     ai.add_argument("-f", "--force", action="store_true")
     s.set_defaults(fn=cmd_aether)
+
+    s = sub.add_parser("omarchy", help="Omarchy-Theme importieren")
+    osub = s.add_subparsers(dest="omarchy_cmd", required=True)
+    oi = osub.add_parser("import", help="aus GitHub-URL, user/repo oder lokalem Ordner")
+    oi.add_argument("source", help="z. B. https://github.com/OldJobobo/omarchy-miasma-theme")
+    oi.add_argument("--name", help="Name des neuen Themes (Standard: aus dem Repo-Namen)")
+    oi.add_argument("--wallpaper", help="welcher Hintergrund aus backgrounds/ (Nummer oder Namensteil)")
+    oi.add_argument("--apply", action="store_true", help="direkt anwenden")
+    oi.add_argument("-f", "--force", action="store_true")
+    s.set_defaults(fn=cmd_omarchy)
 
     s = sub.add_parser("pick", help="Theme über ein Menü (fuzzel/rofi/wofi/fzf) auswählen")
     s.add_argument("--menu", choices=["fuzzel", "rofi", "wofi", "fzf"])

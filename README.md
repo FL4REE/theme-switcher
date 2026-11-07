@@ -90,6 +90,21 @@ Alternativ in Aether direkt *Apply* drücken und dann
 `themectl aether import --current --name <name>`. Das liest
 `~/.config/aether/theme/colors.toml` und das Bild aus `theme/backgrounds/`.
 
+## Omarchy-Themes
+
+Jedes Omarchy-Theme lässt sich direkt von GitHub übernehmen:
+
+```bash
+themectl omarchy import https://github.com/OldJobobo/omarchy-miasma-theme --apply
+themectl omarchy import OldJobobo/omarchy-miasma-theme --wallpaper 4 -f   # anderen Hintergrund nehmen
+themectl omarchy import ~/Downloads/mein-omarchy-theme                    # lokaler Ordner
+```
+
+Die Farben kommen aus `colors.toml`, sonst aus `alacritty.toml` oder `kitty.conf`.
+Fehlt ein Akzent, wird die Rahmenfarbe aus `hyprland.conf` genommen. Der Hintergrund
+stammt aus `backgrounds/`. Beim Import werden alle Bilder nummeriert aufgelistet,
+und mit `--wallpaper` wählst du ein anderes aus.
+
 ## Theme-Format
 
 Themes liegen unter `~/.local/share/theme-switcher/themes/<name>/`:

@@ -145,3 +145,53 @@ class ThemectlTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OmarchyTest(unittest.TestCase):
+    def setUp(self):
+        self._path = os.environ.get("PATH", "")
+        self.env = Env()
+        os.environ["PATH"] = self._path  # git wird hier nicht gebraucht, schadet aber nicht
+        self.src = self.env.root / "omarchy-nebel-theme"
+        (self.src / "backgrounds").mkdir(parents=True)
+        (self.src / "backgrounds/01-a.png").write_bytes(b"png")
+        (self.src / "backgrounds/02-b.jpg").write_bytes(b"jpg")
+
+    def tearDown(self):
+        os.environ["PATH"] = self._path
+        self.env.tmp.cleanup()
+
+    def test_alacritty_fallback_and_hypr_accent(self):
+        (self.src / "alacritty.toml").write_text(
+            '[colors.primary]\nbackground = "#222222"\nforeground = "#c2c2b0"\n'
+            '[colors.normal]\nblack = "#222222"\nred = "#685742"\ngreen = "#5f875f"\nyellow = "#b36d43"\n'
+            'blue = "#78824b"\nmagenta = "#bb7744"\ncyan = "#c9a554"\nwhite = "#c2c2b0"\n'
+            '[colors.bright]\nblack = "#666666"\n'
+        )
+        (self.src / "hyprland.conf").write_text("$akzent = rgb(aabbcc)\ngeneral {\n  col.active_border = $akzent rgb(000000) 45deg\n}\n")
+        self.assertEqual(self.env.run("omarchy", "import", str(self.src), "--wallpaper", "2"), 0)
+        t = Theme.load(self.env.root / "themes/nebel")
+        self.assertEqual(t.palette.accent, "#aabbcc")
+        self.assertEqual(t.palette.colors[8], "#666666")
+        self.assertEqual(t.palette.colors[9], "#685742")  # fehlende Bright-Farbe = normale
+        self.assertEqual(t.wallpaper, "wallpaper.jpg")
+        self.assertTrue((t.path / "wallpaper.jpg").exists())
+
+    def test_colors_toml_semantic(self):
+        (self.src / "colors.toml").write_text(
+            'accent = "#78824b"\nbackground = "#222222"\nforeground = "#c2c2b0"\n'
+            'bg = "#222222"\nfg = "#c2c2b0"\nred = "#685742"\ngreen = "#5f875f"\nyellow = "#b36d43"\n'
+            'blue = "#78824b"\npurple = "#bb7744"\ncyan = "#c9a554"\nmuted = "#8a8a7e"\n'
+        )
+        self.assertEqual(self.env.run("omarchy", "import", str(self.src), "--name", "Miasma"), 0)
+        t = Theme.load(self.env.root / "themes/miasma")
+        self.assertEqual(t.palette.accent, "#78824b")
+        self.assertEqual(t.palette.colors[5], "#bb7744")
+        self.assertEqual(t.palette.colors[8], "#8a8a7e")
+        self.assertEqual(t.wallpaper, "wallpaper.png")
+
+    def test_github_tree_url(self):
+        from theme_switcher.omarchy import _GITHUB_TREE
+        m = _GITHUB_TREE.match("https://github.com/OldJobobo/omarchy-miasma-theme/tree/master")
+        self.assertEqual(m.group(1), "https://github.com/OldJobobo/omarchy-miasma-theme")
+        self.assertEqual(m.group(2), "master")

@@ -49,7 +49,7 @@ auswählen und mit Enter anwenden. Mehr dazu in [`dms-plugin/README.md`](dms-plu
 In `~/.config/hypr/dms/binds-user.lua`:
 
 ```lua
-hl.bind("SUPER + ALT + T", hl.dsp.exec_cmd("/home/erik/.local/bin/themectl pick"), { description = "Theme wählen" })
+hl.bind("SUPER + ALT + T", hl.dsp.exec_cmd("dms ipc call spotlight toggleQuery '~'"), { description = "Theme wählen" })
 hl.bind("SUPER + ALT + N", hl.dsp.exec_cmd("/home/erik/.local/bin/themectl next"), { description = "Nächstes Theme" })
 ```
 
@@ -59,7 +59,8 @@ Und in `hyprland.lua`, damit das Auswahlfenster schwebt:
 hl.window_rule({ match = { class = "^(themectl\\.picker)$" }, float = true })
 ```
 
-`pick` nimmt fuzzel, rofi oder wofi, wenn vorhanden. Sonst öffnet es fzf in
+Super+Alt+T öffnet damit den DMS-Launcher gleich mit `~`, also die Theme-Liste aus dem Plugin.
+Ohne Plugin geht auch `themectl pick`: Es nimmt fuzzel, rofi oder wofi, wenn vorhanden. Sonst öffnet es fzf in
 einem schwebenden Ghostty-Fenster. Nach dem Wechsel kommt eine Benachrichtigung.
 
 ## Was beim Anwenden passiert

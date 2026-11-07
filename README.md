@@ -98,7 +98,7 @@ Für den Standardstil `adwaita` einmal die farbigen Adwaita-Varianten installier
 
 ```bash
 git clone https://github.com/dpejoh/Adwaita-colors /tmp/adwaita-colors
-cd /tmp/adwaita-colors && sudo ./setup -i -P /usr   # systemweit nach /usr/share/icons
+cd /tmp/adwaita-colors && sudo ./setup -i -g   # systemweit nach /usr/share/icons
 ```
 
 Ohne sie wird normales Adwaita gesetzt, und es ändert sich nur die GNOME-Akzentfarbe.

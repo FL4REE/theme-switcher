@@ -94,15 +94,40 @@ def pick_colors(theme: Theme, count: int = 2) -> list[str]:
     return ranked[:count]
 
 
+def _fish_set(var: str, values: list[str]) -> str | None:
+    quoted = " ".join("'" + v.replace("\\", "\\\\").replace("'", "\\'") + "'" for v in values)
+    res = subprocess.run(["fish", "-c", f"set -U {var} {quoted}"], capture_output=True, text=True)
+    return None if res.returncode == 0 else res.stderr.strip()
+
+
 def apply(theme: Theme, cfg: Config, dry_run: bool = False) -> list[str]:
+    from .. import pokemon
+
     names = {**DEFAULT_NAMES, **cfg.pokefetch_names}
     picked = [names[k] for k in pick_colors(theme, cfg.pokefetch_count)]
+
+    # Feinere Auswahl über die echten Sprite-Farben, falls pokemon-colorscripts installiert ist
+    matches: list[str] = []
+    scripts = pokemon.find_colorscripts(cfg.pokefetch_colorscripts)
+    if scripts:
+        profiles = pokemon.analyse(scripts, cfg.cache_dir / "pokemon-colors.json")
+        matches = pokemon.matching(profiles, theme.palette.accent, cfg.pokefetch_pool)
+
     if dry_run:
-        return [f"würde pokefetch_farben = {' '.join(picked)} setzen"]
+        msg = f"würde pokefetch_farben = {' '.join(picked)} setzen"
+        if matches:
+            msg += f" und {len(matches)} passende Pokémon (z. B. {', '.join(matches[:5])})"
+        return [msg]
     if shutil.which("fish") is None:
         return ["übersprungen: fish nicht gefunden"]
-    quoted = " ".join("'" + n.replace("\\", "\\\\").replace("'", "\\'") + "'" for n in picked)
-    res = subprocess.run(["fish", "-c", f"set -U pokefetch_farben {quoted}"], capture_output=True, text=True)
-    if res.returncode != 0:
-        return [f"Fehler: {res.stderr.strip()}"]
-    return [f"pokefetch-Farben: {' '.join(picked)}"]
+    msgs = []
+    err = _fish_set("pokefetch_farben", picked)
+    msgs.append(err and f"Fehler: {err}" or f"pokefetch-Farben: {' '.join(picked)}")
+    if matches:
+        err = _fish_set("pokefetch_pokemon", matches)
+        msgs.append(err and f"Fehler: {err}" or f"{len(matches)} passende Pokémon, z. B. {', '.join(matches[:5])}")
+    else:
+        # alte Liste entfernen, damit nicht die vom vorherigen Theme bleibt
+        subprocess.run(["fish", "-c", "set -Ue pokefetch_pokemon"], capture_output=True)
+        msgs.append("pokemon-colorscripts nicht gefunden, nur Farbklassen gesetzt")
+    return msgs

@@ -58,6 +58,7 @@ aether_dir = "{root}/aether"
 ghostty_dir = "{root}/ghostty"
 starship_file = "{root}/starship.toml"
 nvim_dir = "{root}/nvim"
+cache_dir = "{root}/cache"
 [targets]
 wallpaper = false
 hyprland = true
@@ -333,6 +334,33 @@ class PokefetchTest(unittest.TestCase):
             self.assertIn("pokefetch_farben = gruen", buf.getvalue())
         finally:
             env.tmp.cleanup()
+
+
+class PokemonSpriteTest(unittest.TestCase):
+    @staticmethod
+    def sprite(main, n=40):
+        r, g, b = (int(main[i:i + 2], 16) for i in (1, 3, 5))
+        px = f"\x1b[38;2;{r};{g};{b}m▀" * n + "\x1b[38;2;20;20;20m▀" * 30 + "\x1b[38;2;250;250;250m▀" * 5
+        return px + "\x1b[0m\n"
+
+    def test_profile_and_matching(self):
+        from theme_switcher import pokemon
+        tmp = tempfile.TemporaryDirectory()
+        try:
+            src = Path(tmp.name) / "colorscripts/small/regular"
+            src.mkdir(parents=True)
+            for name, col in {"bulbasaur": "#5fbf8f", "charmander": "#f08030", "squirtle": "#6890f0",
+                              "oddish": "#4a6fa8", "pikachu": "#f8d030"}.items():
+                (src / name).write_text(self.sprite(col))
+            found = pokemon.find_colorscripts(str(Path(tmp.name) / "colorscripts"))
+            self.assertIsNotNone(found)
+            prof = pokemon.analyse(found, Path(tmp.name) / "cache.json")
+            self.assertEqual(prof["charmander"]["main"], "#f08030")  # Umriss/Glanz ignoriert
+            self.assertEqual(set(pokemon.matching(prof, "#89ddff")[:2]), {"squirtle", "oddish"})
+            self.assertEqual(pokemon.matching(prof, "#ff9e64")[0], "charmander")
+            self.assertTrue((Path(tmp.name) / "cache.json").exists())
+        finally:
+            tmp.cleanup()
 
 
 class IconsTest(unittest.TestCase):

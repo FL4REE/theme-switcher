@@ -4,7 +4,8 @@ Setzt die universelle fish-Variable ``pokefetch_farben``, die die
 ``fish_greeting``-Funktion an ``pokefetch-color`` weitergibt. Universelle
 Variablen gelten sofort in allen offenen fish-Shells.
 
-Die Farben sind die zehn Pokédex-Farbklassen. Die Namen, die übergeben
+Die Farben sind die zehn Pokédex-Farbklassen plus Orange, wie sie
+``pokefetch-color`` kennt. Die Namen, die übergeben
 werden, lassen sich in ``config.toml`` unter ``[pokefetch] names`` anpassen,
 falls ``pokefetch-color`` andere Wörter erwartet.
 """
@@ -27,6 +28,7 @@ POKEDEX = {
     "brown": "#a0703c",
     "gray": "#9a9a9a",
     "green": "#4caf50",
+    "orange": "#f08a2c",
     "pink": "#f2a2c0",
     "purple": "#8e5bc6",
     "red": "#e04040",
@@ -41,6 +43,7 @@ DEFAULT_NAMES = {
     "brown": "braun",
     "gray": "grau",
     "green": "grün",
+    "orange": "orange",
     "pink": "pink",
     "purple": "lila",
     "red": "rot",

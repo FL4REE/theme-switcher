@@ -9,7 +9,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 
-from . import dms, ghostty, hyprland, icons, starship, wallpaper
+from . import dms, ghostty, hyprland, icons, nvim, starship, wallpaper
 
 TARGETS = {
     "dms": dms.apply,
@@ -18,6 +18,7 @@ TARGETS = {
     "ghostty": ghostty.apply,
     "starship": starship.apply,
     "icons": icons.apply,
+    "nvim": nvim.apply,
 }
 
 

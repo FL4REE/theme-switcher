@@ -29,6 +29,8 @@ DEFAULT_TARGETS = {
     "starship": True,
     # Icon-Theme (gsettings + qt5ct/qt6ct), Stil siehe [icons] style
     "icons": True,
+    # Neovim-Farbschema "theme-switcher" (colors/theme-switcher.lua)
+    "nvim": True,
 }
 
 
@@ -41,6 +43,7 @@ class Config:
     aether_dir: Path = CONFIG_HOME / "aether"
     ghostty_dir: Path = CONFIG_HOME / "ghostty"
     starship_file: Path = CONFIG_HOME / "starship.toml"
+    nvim_dir: Path = CONFIG_HOME / "nvim"
     targets: dict[str, bool] = field(default_factory=lambda: dict(DEFAULT_TARGETS))
     # Befehle, die nach dem Anwenden ausgeführt werden ({name}, {dir} werden ersetzt)
     post_apply: list[str] = field(default_factory=list)
@@ -55,7 +58,7 @@ class Config:
             return cfg
         data = tomllib.loads(path.read_text())
         paths = data.get("paths", {})
-        for key in ("themes_dir", "state_dir", "dms_dir", "hypr_dir", "aether_dir", "ghostty_dir", "starship_file"):
+        for key in ("themes_dir", "state_dir", "dms_dir", "hypr_dir", "aether_dir", "ghostty_dir", "starship_file", "nvim_dir"):
             if key in paths:
                 setattr(cfg, key, Path(paths[key]).expanduser())
         cfg.targets.update({k: bool(v) for k, v in data.get("targets", {}).items()})

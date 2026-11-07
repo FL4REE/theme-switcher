@@ -57,6 +57,7 @@ hypr_dir = "{root}/hypr"
 aether_dir = "{root}/aether"
 ghostty_dir = "{root}/ghostty"
 starship_file = "{root}/starship.toml"
+nvim_dir = "{root}/nvim"
 [targets]
 wallpaper = false
 hyprland = true
@@ -269,6 +270,23 @@ class OmarchyTest(unittest.TestCase):
         m = _GITHUB_TREE.match("https://github.com/OldJobobo/omarchy-miasma-theme/tree/master")
         self.assertEqual(m.group(1), "https://github.com/OldJobobo/omarchy-miasma-theme")
         self.assertEqual(m.group(2), "master")
+
+
+class NvimTest(unittest.TestCase):
+    def test_colorscheme_file(self):
+        env = Env()
+        path = os.environ.get("PATH", "")
+        try:
+            env.run("aether", "import", "forest")
+            self.assertEqual(env.run("apply", "forest", "--only", "nvim"), 0)
+            lua = (env.root / "nvim/colors/theme-switcher.lua").read_text()
+            self.assertIn('vim.g.colors_name = "theme-switcher"', lua)
+            self.assertIn('base0D = "#5de4c7"', lua)  # Akzent
+            self.assertIn('vim.g.terminal_color_15 = "#ffffff"', lua)
+            self.assertIn('hl("@function", { fg = c.base0D })', lua)
+        finally:
+            os.environ["PATH"] = path
+            env.tmp.cleanup()
 
 
 class IconsTest(unittest.TestCase):

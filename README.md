@@ -73,6 +73,7 @@ einem schwebenden Ghostty-Fenster. Nach dem Wechsel kommt eine Benachrichtigung.
 | `ghostty`   | aus      | `~/.config/ghostty/themes/theme-switcher`. In der Ghostty-Config einmal `theme = theme-switcher` setzen. |
 | `starship`  | an       | setzt `palette = "theme_switcher"` in `~/.config/starship.toml` und schreibt einen markierten Block `[palettes.theme_switcher]` ans Ende. Er enthält die Farbnamen der Presets Catppuccin-Powerline (`red`, `peach`, `sapphire`, `crust` …) und Gruvbox-Rainbow (`color_bg1` …) sowie `red`, `green`, `accent` usw. Dein bisheriger Palettenblock bleibt stehen. Beim ersten Mal wird `starship.toml.backup-theme-switcher` angelegt. Farben, die in der Config fest als Hex-Wert stehen, ändern sich nicht. |
 | `icons`     | an       | setzt das Icon-Theme per `gsettings` (GTK/DMS) und in `qt5ct`/`qt6ct`. Standard: **immer Adwaita in der Farbe, die dem Akzent am nächsten kommt** (Varianten aus [Adwaita-colors](https://github.com/dpejoh/Adwaita-colors)), dazu die passende GNOME-Akzentfarbe. Umstellbar in `config.toml` unter `[icons] style` auf `yaru` oder `theme`. |
+| `nvim`      | an       | schreibt das Farbschema `~/.config/nvim/colors/theme-switcher.lua` und färbt laufende Neovim-Fenster sofort um. Einmalig in der Neovim-Config `vim.cmd.colorscheme("theme-switcher")` setzen (LazyVim: siehe unten). |
 
 Ziele schaltest du in `~/.config/theme-switcher/config.toml` (Vorlage:
 [`examples/config.toml`](examples/config.toml)) oder einmalig mit
@@ -91,6 +92,22 @@ Ziele schaltest du in `~/.config/theme-switcher/config.toml` (Vorlage:
 Alternativ in Aether direkt *Apply* drücken und dann
 `themectl aether import --current --name <name>`. Das liest
 `~/.config/aether/theme/colors.toml` und das Bild aus `theme/backgrounds/`.
+
+## Neovim
+
+Einmalig das Farbschema aktivieren. Bei einer eigenen Config in `init.lua`:
+
+```lua
+vim.cmd.colorscheme("theme-switcher")
+```
+
+Bei LazyVim als `~/.config/nvim/lua/plugins/theme-switcher.lua`:
+
+```lua
+return { { "LazyVim/LazyVim", opts = { colorscheme = "theme-switcher" } } }
+```
+
+Danach färbt jeder Theme-Wechsel auch offene Neovim-Fenster sofort um.
 
 ## Icons
 

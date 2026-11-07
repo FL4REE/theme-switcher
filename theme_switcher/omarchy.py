@@ -206,10 +206,13 @@ def theme_from_dir(theme_dir: Path, name: str, wallpaper: str | None = None) -> 
     palette = Palette.from_ansi(ansi, ext)
     mode = "light" if (theme_dir / "light.mode").exists() or not c.is_dark(palette.background) else "dark"
     wp = pick_wallpaper(find_wallpapers(theme_dir), wallpaper)
+    icons_file = theme_dir / "icons.theme"
+    icon_theme = icons_file.read_text().strip().splitlines()[0].strip() if icons_file.exists() and icons_file.read_text().strip() else None
     return Theme(
         name=name,
         palette=palette,
         mode=mode,
         wallpaper=str(wp) if wp else None,
+        icon_theme=icon_theme,
         source=f"omarchy:{used}",
     )

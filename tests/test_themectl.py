@@ -255,8 +255,10 @@ class OmarchyTest(unittest.TestCase):
             'bg = "#222222"\nfg = "#c2c2b0"\nred = "#685742"\ngreen = "#5f875f"\nyellow = "#b36d43"\n'
             'blue = "#78824b"\npurple = "#bb7744"\ncyan = "#c9a554"\nmuted = "#8a8a7e"\n'
         )
+        (self.src / "icons.theme").write_text("Yaru-wartybrown\n")
         self.assertEqual(self.env.run("omarchy", "import", str(self.src), "--name", "Miasma"), 0)
         t = Theme.load(self.env.root / "themes/miasma")
+        self.assertEqual(t.icon_theme, "Yaru-wartybrown")
         self.assertEqual(t.palette.accent, "#78824b")
         self.assertEqual(t.palette.colors[5], "#bb7744")
         self.assertEqual(t.palette.colors[8], "#8a8a7e")
@@ -267,3 +269,44 @@ class OmarchyTest(unittest.TestCase):
         m = _GITHUB_TREE.match("https://github.com/OldJobobo/omarchy-miasma-theme/tree/master")
         self.assertEqual(m.group(1), "https://github.com/OldJobobo/omarchy-miasma-theme")
         self.assertEqual(m.group(2), "master")
+
+
+class IconsTest(unittest.TestCase):
+    def test_nearest_yaru(self):
+        from theme_switcher.targets.icons import nearest_yaru
+        avail = ["Yaru", "Yaru-blue", "Yaru-bark", "Yaru-red", "Papirus"]
+        self.assertEqual(nearest_yaru("#1e66f5", avail), "Yaru-blue")
+        self.assertEqual(nearest_yaru("#78824b", avail), "Yaru-bark")
+        self.assertEqual(nearest_yaru("#e0405a", avail), "Yaru-red")
+        self.assertIsNone(nearest_yaru("#ffffff", ["Papirus"]))
+
+    def test_resolve_prefers_theme_and_falls_back(self):
+        from theme_switcher.model import Palette
+        from theme_switcher.targets.icons import resolve
+        t = Theme(name="t", palette=Palette.from_ansi(ANSI), icon_theme="Papirus-Dark")
+        self.assertEqual(resolve(t, ["Papirus-Dark", "Yaru-blue"])[0], "Papirus-Dark")
+        t.icon_theme = "Yaru-wartybrown"
+        name, why = resolve(t, ["Yaru-blue"])
+        self.assertEqual(name, "Yaru-blue")
+        self.assertIn("nicht installiert", why)
+
+    def test_apply_writes_qt_conf_and_icons_cmd(self):
+        env = Env()
+        path = os.environ.get("PATH", "")
+        try:
+            qt = env.root / "qt6ct"
+            qt.mkdir()
+            (qt / "qt6ct.conf").write_text("[Appearance]\nicon_theme=breeze\nstyle=Fusion\n")
+            env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800", "--icons", "hicolor")
+            os.environ["XDG_DATA_DIRS"] = str(env.root / "share")
+            (env.root / "share/icons/hicolor").mkdir(parents=True)
+            (env.root / "share/icons/hicolor/index.theme").write_text("[Icon Theme]\n")
+            self.assertEqual(env.run("apply", "x", "--only", "icons"), 0)
+            self.assertIn("icon_theme=hicolor", (qt / "qt6ct.conf").read_text())
+            self.assertIn("style=Fusion", (qt / "qt6ct.conf").read_text())
+            self.assertEqual(env.run("icons", "x", "auto"), 0)
+            self.assertIsNone(Theme.load(env.root / "themes/x").icon_theme)
+        finally:
+            os.environ.pop("XDG_DATA_DIRS", None)
+            os.environ["PATH"] = path
+            env.tmp.cleanup()

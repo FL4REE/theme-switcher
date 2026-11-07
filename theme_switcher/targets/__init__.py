@@ -9,7 +9,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 
-from . import dms, ghostty, hyprland, starship, wallpaper
+from . import dms, ghostty, hyprland, icons, starship, wallpaper
 
 TARGETS = {
     "dms": dms.apply,
@@ -17,6 +17,7 @@ TARGETS = {
     "hyprland": hyprland.apply,
     "ghostty": ghostty.apply,
     "starship": starship.apply,
+    "icons": icons.apply,
 }
 
 

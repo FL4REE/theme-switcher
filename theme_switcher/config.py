@@ -27,6 +27,8 @@ DEFAULT_TARGETS = {
     "ghostty": False,
     # Starship-Prompt: Palette "theme_switcher" in starship.toml setzen
     "starship": True,
+    # Icon-Theme (gsettings + qt5ct/qt6ct); ohne Angabe passende Yaru-Farbe
+    "icons": True,
 }
 
 

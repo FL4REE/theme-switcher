@@ -16,6 +16,7 @@ from .model import Palette, Theme
 from .store import Store
 from .targets import TARGETS
 from .targets import dms as dms_target
+from .targets import icons as icons_target
 from .targets import wallpaper as wallpaper_target
 
 
@@ -148,6 +149,7 @@ def cmd_save(args, cfg, store):
         palette=palette_from_dms(dark),
         dms={"dark": _colors_only(dark), "light": _colors_only(light)},
         wallpaper=wp,
+        icon_theme=args.icons or icons_target.current(),
         source=f"dms:{current.get('name', 'unbekannt')}",
     )
     d = store.save(theme, overwrite=args.force)
@@ -171,6 +173,7 @@ def cmd_create(args, cfg, store):
         palette=palette,
         mode="dark" if c.is_dark(palette.background) else "light",
         wallpaper=args.wallpaper,
+        icon_theme=args.icons,
         source="manuell",
     )
     d = store.save(theme, overwrite=args.force)
@@ -298,6 +301,21 @@ def cmd_omarchy(args, cfg, store):
     return 0
 
 
+def cmd_icons(args, cfg, store):
+    if args.name:
+        t = store.get(args.name)
+        t.icon_theme = None if args.theme in ("auto", "") else args.theme
+        store.save(t, overwrite=True, copy_wallpaper=False)
+        print(f"✓ {t.name}: Icon-Theme = {t.icon_theme or 'automatisch'}")
+        return 0
+    names = icons_target.installed()
+    cur = icons_target.current()
+    print("Installierte Icon-Themes:")
+    for n in names:
+        print(f"  {'●' if n == cur else ' '} {n}")
+    return 0
+
+
 def cmd_pick(args, cfg, store):
     names = [t.path.name for t in store.list() if t.path]
     if not names:
@@ -376,6 +394,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("save", help="Aktuellen Desktop als Theme speichern")
     s.add_argument("name")
     s.add_argument("--wallpaper", help="Hintergrundbild (sonst wird das aktuelle von DMS genommen)")
+    s.add_argument("--icons", help="Icon-Theme (sonst das aktuell gesetzte)")
     s.add_argument("-f", "--force", action="store_true", help="vorhandenes Theme überschreiben")
     s.set_defaults(fn=cmd_save)
 
@@ -386,6 +405,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--accent")
     s.add_argument("--colors", help="16 ANSI-Farben, durch Komma oder Leerzeichen getrennt")
     s.add_argument("--wallpaper")
+    s.add_argument("--icons", help="Icon-Theme, z. B. Yaru-blue oder Papirus-Dark (sonst automatisch)")
     s.add_argument("--apply", action="store_true", help="direkt anwenden")
     s.add_argument("-f", "--force", action="store_true")
     s.set_defaults(fn=cmd_create)
@@ -430,6 +450,11 @@ def build_parser() -> argparse.ArgumentParser:
     oi.add_argument("--apply", action="store_true", help="direkt anwenden")
     oi.add_argument("-f", "--force", action="store_true")
     s.set_defaults(fn=cmd_omarchy)
+
+    s = sub.add_parser("icons", help="Icon-Themes anzeigen oder einem Theme zuweisen")
+    s.add_argument("name", nargs="?", help="Theme, dem ein Icon-Theme zugewiesen wird")
+    s.add_argument("theme", nargs="?", default="auto", help="Icon-Theme-Name oder 'auto'")
+    s.set_defaults(fn=cmd_icons)
 
     s = sub.add_parser("pick", help="Theme über ein Menü (fuzzel/rofi/wofi/fzf) auswählen")
     s.add_argument("--menu", choices=["fuzzel", "rofi", "wofi", "fzf"])

@@ -18,6 +18,7 @@ Hintergrundbild. Beispiel::
       "wallpaper": "wallpaper.png",
       "dms": {"dark": {...}, "light": {...}},
       "hyprland": {"active_border": "#89ddff", "inactive_border": "#3c5170"},
+      "icon_theme": "Yaru-blue",
       "source": "aether:Poimandres"
     }
 
@@ -102,6 +103,7 @@ class Theme:
     wallpaper: str | None = None
     dms: dict[str, dict[str, str]] | None = None
     hyprland: dict[str, str] | None = None
+    icon_theme: str | None = None
     source: str | None = None
     path: Path | None = field(default=None, compare=False)
 
@@ -124,6 +126,7 @@ class Theme:
             wallpaper=data.get("wallpaper"),
             dms=data.get("dms"),
             hyprland=data.get("hyprland"),
+            icon_theme=data.get("icon_theme"),
             source=data.get("source"),
             path=path,
         )
@@ -135,7 +138,7 @@ class Theme:
             "mode": self.mode,
             "palette": self.palette.to_dict(),
         }
-        for key in ("wallpaper", "dms", "hyprland", "source"):
+        for key in ("wallpaper", "icon_theme", "dms", "hyprland", "source"):
             value = getattr(self, key)
             if value:
                 d[key] = value

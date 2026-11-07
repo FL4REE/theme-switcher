@@ -318,7 +318,7 @@ class PokefetchTest(unittest.TestCase):
         mk = lambda acc: Theme(name="t", palette=Palette.from_ansi(ANSI, {"accent": acc}))
         self.assertEqual(set(pick_colors(mk("#78824b"), 2)), {"green", "yellow"})  # Miasma-Oliv
         self.assertEqual(pick_colors(mk("#89ddff"), 1), ["blue"])      # Poimandres
-        self.assertEqual(pick_colors(mk("#ff9e64"), 1)[0] in ("brown", "red", "yellow"), True)
+        self.assertEqual(pick_colors(mk("#ff9e64"), 1)[0], "orange")
         self.assertNotIn("gray", pick_colors(mk("#ff9e64"), 3))       # bunt -> keine Grautöne
         self.assertIn(pick_colors(mk("#888888"), 1)[0], ("gray", "white", "black"))
 

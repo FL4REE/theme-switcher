@@ -27,7 +27,7 @@ DEFAULT_TARGETS = {
     "ghostty": False,
     # Starship-Prompt: Palette "theme_switcher" in starship.toml setzen
     "starship": True,
-    # Icon-Theme (gsettings + qt5ct/qt6ct); ohne Angabe passende Yaru-Farbe
+    # Icon-Theme (gsettings + qt5ct/qt6ct), Stil siehe [icons] style
     "icons": True,
 }
 
@@ -44,6 +44,8 @@ class Config:
     targets: dict[str, bool] = field(default_factory=lambda: dict(DEFAULT_TARGETS))
     # Befehle, die nach dem Anwenden ausgeführt werden ({name}, {dir} werden ersetzt)
     post_apply: list[str] = field(default_factory=list)
+    # "adwaita" (Adwaita in Akzentfarbe), "yaru" oder "theme" (icon_theme aus dem Theme)
+    icon_style: str = "adwaita"
 
     @classmethod
     def load(cls, path: Path | None = None) -> "Config":
@@ -58,4 +60,7 @@ class Config:
                 setattr(cfg, key, Path(paths[key]).expanduser())
         cfg.targets.update({k: bool(v) for k, v in data.get("targets", {}).items()})
         cfg.post_apply = list(data.get("hooks", {}).get("post_apply", []))
+        style = data.get("icons", {}).get("style")
+        if style in ("adwaita", "yaru", "theme"):
+            cfg.icon_style = style
         return cfg

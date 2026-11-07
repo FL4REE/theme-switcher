@@ -7,6 +7,12 @@ hyprland = false  # eigene hypr/theme-switcher.lua (nur wenn du dms.colors nicht
 ghostty = false   # ~/.config/ghostty/themes/theme-switcher schreiben
 starship = true   # Palette "theme_switcher" in ~/.config/starship.toml
 
+[icons]
+# adwaita = immer Adwaita in der passendsten Farbe (braucht Adwaita-colors)
+# yaru    = passende Yaru-Farbe
+# theme   = Icon-Theme aus dem jeweiligen Theme (z. B. Omarchy icons.theme)
+style = "adwaita"
+
 [paths]
 # themes_dir = "~/.local/share/theme-switcher/themes"
 # aether_dir = "~/.config/aether"

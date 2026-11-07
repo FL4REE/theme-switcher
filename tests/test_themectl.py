@@ -280,6 +280,19 @@ class IconsTest(unittest.TestCase):
         self.assertEqual(nearest_yaru("#e0405a", avail), "Yaru-red")
         self.assertIsNone(nearest_yaru("#ffffff", ["Papirus"]))
 
+    def test_adwaita_style(self):
+        from theme_switcher.model import Palette
+        from theme_switcher.targets.icons import gnome_accent, nearest_adwaita, resolve
+        self.assertEqual(nearest_adwaita("#1e66f5"), "Adwaita-blue")
+        self.assertEqual(nearest_adwaita("#78824b"), "Adwaita-brown")
+        self.assertEqual(nearest_adwaita("#2aa198"), "Adwaita-teal")
+        self.assertNotEqual(gnome_accent("#78824b"), "brown")
+        t = Theme(name="t", palette=Palette.from_ansi(ANSI, {"accent": "#ff8800"}), icon_theme="Yaru-blue")
+        self.assertEqual(resolve(t, ["Adwaita", "Adwaita-orange"], "adwaita")[0], "Adwaita-orange")
+        name, why = resolve(t, ["Adwaita"], "adwaita")
+        self.assertEqual(name, "Adwaita")
+        self.assertIn("Adwaita-colors", why)
+
     def test_resolve_prefers_theme_and_falls_back(self):
         from theme_switcher.model import Palette
         from theme_switcher.targets.icons import resolve
@@ -296,6 +309,7 @@ class IconsTest(unittest.TestCase):
         try:
             qt = env.root / "qt6ct"
             qt.mkdir()
+            env.cfg.write_text(env.cfg.read_text() + '\n[icons]\nstyle = "theme"\n')
             (qt / "qt6ct.conf").write_text("[Appearance]\nicon_theme=breeze\nstyle=Fusion\n")
             env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800", "--icons", "hicolor")
             os.environ["XDG_DATA_DIRS"] = str(env.root / "share")

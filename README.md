@@ -72,7 +72,7 @@ einem schwebenden Ghostty-Fenster. Nach dem Wechsel kommt eine Benachrichtigung.
 | `hyprland`  | aus      | eigene `~/.config/hypr/theme-switcher.lua` + `hyprctl reload`. Nur nötig, wenn du Rahmenfarben unabhängig von DMS willst. Dann in `hyprland.lua` nach `require("dms.colors")` eintragen: `pcall(require, "theme-switcher")` |
 | `ghostty`   | aus      | `~/.config/ghostty/themes/theme-switcher`. In der Ghostty-Config einmal `theme = theme-switcher` setzen. |
 | `starship`  | an       | setzt `palette = "theme_switcher"` in `~/.config/starship.toml` und schreibt einen markierten Block `[palettes.theme_switcher]` ans Ende. Er enthält die Farbnamen der Presets Catppuccin-Powerline (`red`, `peach`, `sapphire`, `crust` …) und Gruvbox-Rainbow (`color_bg1` …) sowie `red`, `green`, `accent` usw. Dein bisheriger Palettenblock bleibt stehen. Beim ersten Mal wird `starship.toml.backup-theme-switcher` angelegt. Farben, die in der Config fest als Hex-Wert stehen, ändern sich nicht. |
-| `icons`     | an       | setzt das Icon-Theme per `gsettings` (GTK/DMS) und in `qt5ct`/`qt6ct`. Ohne `icon_theme` im Theme wird die Yaru-Farbvariante genommen, die dem Akzent am nächsten kommt (wie bei Omarchy, braucht `yaru-icon-theme`). Omarchy-Themes bringen ihr `icons.theme` mit. |
+| `icons`     | an       | setzt das Icon-Theme per `gsettings` (GTK/DMS) und in `qt5ct`/`qt6ct`. Standard: **immer Adwaita in der Farbe, die dem Akzent am nächsten kommt** (Varianten aus [Adwaita-colors](https://github.com/dpejoh/Adwaita-colors)), dazu die passende GNOME-Akzentfarbe. Umstellbar in `config.toml` unter `[icons] style` auf `yaru` oder `theme`. |
 
 Ziele schaltest du in `~/.config/theme-switcher/config.toml` (Vorlage:
 [`examples/config.toml`](examples/config.toml)) oder einmalig mit
@@ -93,6 +93,15 @@ Alternativ in Aether direkt *Apply* drücken und dann
 `~/.config/aether/theme/colors.toml` und das Bild aus `theme/backgrounds/`.
 
 ## Icons
+
+Für den Standardstil `adwaita` einmal die farbigen Adwaita-Varianten installieren:
+
+```bash
+git clone https://github.com/dpejoh/Adwaita-colors /tmp/adwaita-colors
+cd /tmp/adwaita-colors && sudo ./setup -i
+```
+
+Ohne sie wird normales Adwaita gesetzt, und es ändert sich nur die GNOME-Akzentfarbe.
 
 ```bash
 themectl icons                       # installierte Icon-Themes, ● = aktiv

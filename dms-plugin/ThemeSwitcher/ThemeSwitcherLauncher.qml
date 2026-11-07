@@ -97,7 +97,8 @@ Item {
                 comment: (t.current ? "aktiv · " : "") + t.mode + " · Akzent " + t.accent,
                 action: "apply:" + t.id,
                 categories: ["Themes"],
-                keywords: [t.id, t.source]
+                keywords: [t.id, t.source],
+                imageUrl: t.wallpaper ? "file://" + t.wallpaper : ""
             })
         }
         // aktives Theme nach unten, damit Enter direkt ein anderes nimmt

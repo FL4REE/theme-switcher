@@ -101,6 +101,9 @@ def cmd_list(args, cfg, store):
                 "mode": t.mode,
                 "accent": t.palette.accent,
                 "background": t.palette.background,
+                "foreground": t.palette.foreground,
+                "colors": t.palette.colors,
+                "wallpaper": str(t.wallpaper_path()) if t.wallpaper_path() and t.wallpaper_path().exists() else "",
                 "source": t.source or "",
                 "current": bool(t.path and t.path.name == current),
             }

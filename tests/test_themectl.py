@@ -128,6 +128,8 @@ class ThemectlTest(unittest.TestCase):
         self.assertEqual(data[0]["id"], "x")
         self.assertTrue(data[0]["current"])
         self.assertEqual(data[0]["accent"], "#ff8800")
+        self.assertEqual(len(data[0]["colors"]), 16)
+        self.assertEqual(data[0]["wallpaper"], "")
 
     def test_light_variant_is_light(self):
         self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")

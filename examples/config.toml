@@ -1,0 +1,17 @@
+# ~/.config/theme-switcher/config.toml  (alles optional)
+
+[targets]
+dms = true        # DMS-Theme schreiben und aktivieren (färbt über Matugen auch Hyprland)
+wallpaper = true  # Hintergrund per "dms ipc call wallpaper set" setzen
+hyprland = false  # eigene hypr/theme-switcher.lua (nur wenn du dms.colors nicht nutzt)
+ghostty = false   # ~/.config/ghostty/themes/theme-switcher schreiben
+
+[paths]
+# themes_dir = "~/.local/share/theme-switcher/themes"
+# aether_dir = "~/.config/aether"
+
+[hooks]
+# Befehle nach jedem Wechsel; {name} und {dir} werden ersetzt
+post_apply = [
+  # "notify-send 'Theme' '{name}'",
+]

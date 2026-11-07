@@ -41,7 +41,7 @@ DEFAULT_NAMES = {
     "brown": "braun",
     "gray": "grau",
     "green": "grün",
-    "pink": "rosa",
+    "pink": "pink",
     "purple": "lila",
     "red": "rot",
     "white": "weiß",

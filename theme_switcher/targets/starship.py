@@ -72,22 +72,39 @@ _TABLE = re.compile(r"^\s*\[")
 _PALETTE_LINE = re.compile(r"^\s*palette\s*=")
 
 
+def _top_level_lines(lines: list[str]) -> tuple[list[int], int]:
+    """Indizes der Zeilen auf oberster Ebene (nicht in mehrzeiligen Strings)
+    und den Index der ersten echten [Tabelle]."""
+    top: list[int] = []
+    delim: str | None = None
+    for i, line in enumerate(lines):
+        if delim is None:
+            if _TABLE.match(line):
+                return top, i
+            top.append(i)
+            for d in ('"""', "'''"):
+                if line.count(d) % 2 == 1:
+                    delim = d
+                    break
+        elif line.count(delim) % 2 == 1:
+            delim = None
+    return top, len(lines)
+
+
 def update_config(text: str, theme: Theme) -> str:
     # alten Block entfernen
     text = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\n?", "", text, flags=re.S)
     lines = text.splitlines()
-    first_table = next((i for i, l in enumerate(lines) if _TABLE.match(l)), len(lines))
+    top, first_table = _top_level_lines(lines)
     palette_line = f'palette = "{PALETTE}"'
-    for i in range(first_table):
-        if _PALETTE_LINE.match(lines[i]):
-            lines[i] = palette_line
-            break
+    palette_idx = [i for i in top if _PALETTE_LINE.match(lines[i])]
+    if palette_idx:
+        lines[palette_idx[0]] = palette_line
+        # doppelte palette-Zeilen (z. B. aus Version 0.1) entfernen
+        for i in reversed(palette_idx[1:]):
+            del lines[i]
     else:
-        # nach führenden Kommentaren / $schema einfügen, aber vor der ersten Tabelle
-        insert_at = 0
-        while insert_at < first_table and (lines[insert_at].startswith("#") or lines[insert_at].startswith('"$schema"')):
-            insert_at += 1
-        lines.insert(insert_at, palette_line)
+        lines.insert(first_table, palette_line)
     body = "\n".join(lines).rstrip("\n")
     return body + "\n\n" + render_block(theme)
 

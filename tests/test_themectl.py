@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -181,6 +182,32 @@ class StarshipTest(unittest.TestCase):
             self.assertIn(key, pal)
         self.assertEqual(pal["accent"], "#ff8800")
         self.assertTrue((self.env.root / "starship.toml.backup-theme-switcher").exists())
+
+    def test_multiline_format_and_repair_duplicate(self):
+        import tomllib
+        # wie das catppuccin-powerline-Preset: format ist mehrzeilig und Zeilen beginnen mit "["
+        broken = (
+            'palette = "theme_switcher"\n'  # kaputter Stand aus Version 0.1
+            "\"$schema\" = 'https://starship.rs/config-schema.json'\n"
+            'format = """\n[](red)\\\n$os\\\n[](bg:peach fg:red)\\\n"""\n'
+            "palette = 'catppuccin_mocha'\n\n"
+            '[os]\nstyle = "bg:red fg:crust"\n\n'
+            '[palettes.catppuccin_mocha]\nred = "#f38ba8"\n'
+        )
+        self.cfg.write_text(broken)
+        self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")
+        self.assertEqual(self.env.run("apply", "x", "--only", "starship"), 0)
+        text = self.cfg.read_text()
+        data = tomllib.loads(text)
+        self.assertEqual(data["palette"], "theme_switcher")
+        self.assertEqual(len(re.findall(r"(?m)^palette\s*=", text)), 1)
+        self.assertTrue(data["format"].startswith("[](red)"))
+        # frische Datei: palette landet nach dem format-Block, nicht darin
+        self.cfg.write_text('format = """\n[a](red)\n"""\n\n[os]\nstyle = "red"\n')
+        self.env.run("apply", "x", "--only", "starship")
+        data = tomllib.loads(self.cfg.read_text())
+        self.assertEqual(data["palette"], "theme_switcher")
+        self.assertEqual(data["format"], "[a](red)\n")
 
     def test_no_palette_line_inserted_before_tables(self):
         import tomllib

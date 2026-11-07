@@ -20,6 +20,7 @@ mkdir -p "$HOME/.config/theme-switcher"
 # DMS-Launcher-Plugin verlinken (Super+Space, dann "~")
 mkdir -p "$HOME/.config/dms/plugins"
 ln -sfn "$PWD/dms-plugin/ThemeSwitcher" "$HOME/.config/dms/plugins/ThemeSwitcher"
-echo "✓ DMS-Plugin verlinkt. In DMS: Einstellungen → Plugins → Scan → 'Theme Switcher' aktivieren"
+ln -sfn "$PWD/dms-plugin/ThemeGallery" "$HOME/.config/dms/plugins/ThemeGallery"
+echo "✓ DMS-Plugins verlinkt. In DMS: Einstellungen → Plugins → Scan → 'Theme Switcher' und 'Theme Galerie' aktivieren"
 
 echo "✓ Fertig. Probier: themectl --help"

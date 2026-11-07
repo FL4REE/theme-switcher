@@ -44,6 +44,14 @@ Einmal in DMS unter **Einstellungen → Plugins** auf „Scan for Plugins“ kli
 und **Theme Switcher** einschalten. Danach im Launcher `~` tippen, ein Theme
 auswählen und mit Enter anwenden. Mehr dazu in [`dms-plugin/README.md`](dms-plugin/README.md).
 
+## Theme-Galerie in der Leiste
+
+`install.sh` verlinkt auch das Widget **Theme Galerie** nach `~/.config/dms/plugins/ThemeGallery`.
+Aktivieren mit `dms ipc call plugins enable themeGallery` (oder in DMS unter Einstellungen →
+Plugins) und dann in den Leisten-Einstellungen als Widget hinzufügen. In der Leiste stehen
+ein Palette-Symbol und der Name des aktiven Themes. Ein Klick öffnet die Galerie mit
+Wallpaper, Mini-Fenster und Farben jedes Themes, ein Klick auf eine Karte wendet es an.
+
 ## Hotkeys (Hyprland-Lua)
 
 In `~/.config/hypr/dms/binds-user.lua`:
@@ -174,6 +182,5 @@ python3 -m theme_switcher --help
 
 ## Ideen für später
 
-- DMS-Plugin mit Theme-Galerie in der Leiste
 - Weitere Ziele: GTK/Qt, Kitty, Alacritty, Neovim, Firefox (`dms/firefox.css`)
 - `themectl generate <bild>` über `aether --generate`

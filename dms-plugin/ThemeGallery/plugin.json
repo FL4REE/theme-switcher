@@ -1,0 +1,18 @@
+{
+    "id": "themeGallery",
+    "name": "Theme Galerie",
+    "description": "Leisten-Widget mit Galerie aller themectl-Themes: Vorschau ansehen und per Klick anwenden",
+    "version": "0.1.0",
+    "license": "MIT",
+    "author": "Erik (FL4REE)",
+    "icon": "palette",
+    "type": "widget",
+    "capabilities": ["dankbar-widget"],
+    "component": "./ThemeGalleryWidget.qml",
+    "requires_dms": ">=1.2.0",
+    "permissions": [
+        "settings_read",
+        "settings_write",
+        "process"
+    ]
+}

@@ -246,29 +246,63 @@ def cmd_aether(args, cfg, store):
     return 0
 
 
+def _notify(title: str, body: str) -> None:
+    if shutil.which("notify-send"):
+        subprocess.run(["notify-send", "-a", "themectl", title, body])
+
+
+def _terminal_cmd(inner: list[str]) -> list[str] | None:
+    """Startet inner in einem schwebenden Terminal (für Hotkeys ohne GUI-Menü)."""
+    import os
+
+    for term in filter(None, [os.environ.get("TERMINAL"), "ghostty", "kitty", "alacritty", "foot"]):
+        if shutil.which(term):
+            if term == "ghostty":
+                return [term, "--class=themectl.picker", "-e", *inner]
+            if term in ("kitty", "foot"):
+                return [term, "--app-id" if term == "foot" else "--class", "themectl.picker", *inner]
+            return [term, "--class", "themectl.picker", "-e", *inner]
+    return None
+
+
 def cmd_pick(args, cfg, store):
     names = [t.path.name for t in store.list() if t.path]
     if not names:
         print("Keine Themes vorhanden.")
         return 1
-    menu = None
-    for tool, cmd in (
-        ("fuzzel", ["fuzzel", "--dmenu", "--prompt", "Theme: "]),
-        ("rofi", ["rofi", "-dmenu", "-p", "Theme"]),
-        ("wofi", ["wofi", "--dmenu"]),
-        ("fzf", ["fzf", "--prompt", "Theme> "]),
-    ):
-        if (args.menu in (None, tool)) and shutil.which(tool):
-            menu = cmd
-            break
+    interactive = sys.stdin.isatty() and sys.stdout.isatty()
+    current = store.current()
+    menus = {
+        "fuzzel": ["fuzzel", "--dmenu", "--prompt", "Theme: "],
+        "rofi": ["rofi", "-dmenu", "-p", "Theme"],
+        "wofi": ["wofi", "--dmenu"],
+        "fzf": ["fzf", "--prompt", "Theme> ", "--height", "~60%", "--reverse", "--header", f"aktiv: {current or '-'}"],
+    }
+    order = [args.menu] if args.menu else (["fzf", "fuzzel", "rofi", "wofi"] if interactive else ["fuzzel", "rofi", "wofi"])
+    menu = next((menus[m] for m in order if shutil.which(m)), None)
+
+    if menu is None and not interactive and not args.menu and shutil.which("fzf"):
+        # Aus einem Hotkey gestartet, aber kein GUI-Menü da: fzf in einem Terminal öffnen
+        term = _terminal_cmd([sys.executable, "-m", "theme_switcher", "pick", "--menu", "fzf"])
+        if term:
+            import os
+
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(Path(__file__).resolve().parent.parent) + (":" + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+            return subprocess.call(term, env=env)
     if menu is None:
-        print("Kein Menü gefunden (fuzzel, rofi, wofi oder fzf installieren).", file=sys.stderr)
+        msg = "Kein Menü gefunden (fuzzel, rofi, wofi oder fzf installieren)."
+        print(msg, file=sys.stderr)
+        _notify("themectl", msg)
         return 1
-    res = subprocess.run(menu, input="\n".join(names), capture_output=True, text=True)
+
+    res = subprocess.run(menu, input="\n".join(names), stdout=subprocess.PIPE, text=True)
     choice = res.stdout.strip()
     if not choice:
         return 0
-    return apply_theme(store.get(choice), cfg, store, None, False)
+    rc = apply_theme(store.get(choice), cfg, store, None, False)
+    _notify("Theme gewechselt" if rc == 0 else "Theme-Wechsel mit Fehlern", choice)
+    return rc
 
 
 def cmd_cycle(args, cfg, store):
@@ -278,7 +312,10 @@ def cmd_cycle(args, cfg, store):
     cur = store.current()
     idx = names.index(cur) if cur in names else -1
     nxt = names[(idx + (1 if args.cmd == "next" else -1)) % len(names)]
-    return apply_theme(store.get(nxt), cfg, store, None, False)
+    rc = apply_theme(store.get(nxt), cfg, store, None, False)
+    if not sys.stdout.isatty():
+        _notify("Theme gewechselt", nxt)
+    return rc
 
 
 # ---------------------------------------------------------------------------

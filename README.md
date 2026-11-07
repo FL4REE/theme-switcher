@@ -37,6 +37,24 @@ themectl edit nachtblau             # theme.json im Editor feinjustieren
 Teilen und sichern: `themectl export <name>` erzeugt ein `.tar.gz`,
 `themectl import <datei|ordner|theme.json>` liest es wieder ein.
 
+## Hotkeys (Hyprland-Lua)
+
+In `~/.config/hypr/dms/binds-user.lua`:
+
+```lua
+hl.bind("SUPER + ALT + T", hl.dsp.exec_cmd("/home/erik/.local/bin/themectl pick"), { description = "Theme wählen" })
+hl.bind("SUPER + ALT + N", hl.dsp.exec_cmd("/home/erik/.local/bin/themectl next"), { description = "Nächstes Theme" })
+```
+
+Und in `hyprland.lua`, damit das Auswahlfenster schwebt:
+
+```lua
+hl.window_rule({ match = { class = "^(themectl\\.picker)$" }, float = true })
+```
+
+`pick` nimmt fuzzel, rofi oder wofi, wenn vorhanden. Sonst öffnet es fzf in
+einem schwebenden Ghostty-Fenster. Nach dem Wechsel kommt eine Benachrichtigung.
+
 ## Was beim Anwenden passiert
 
 | Ziel        | Standard | Wirkung |

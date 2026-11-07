@@ -95,6 +95,51 @@ PluginComponent {
                 width: parent.width
                 implicitHeight: root.popoutHeight - popout.headerHeight - popout.detailsHeight - Theme.spacingXL
 
+                // Omarchy-Themes online suchen (öffnet ein Terminal mit Suche + Auswahl)
+                Rectangle {
+                    id: searchButton
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: searchRow.implicitWidth + Theme.spacingL * 2
+                    height: 36
+                    radius: Theme.cornerRadius
+                    color: searchMouse.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainer
+                    border.color: Theme.outlineStrong
+                    border.width: 1
+
+                    Row {
+                        id: searchRow
+                        anchors.centerIn: parent
+                        spacing: Theme.spacingS
+                        DankIcon {
+                            name: "travel_explore"
+                            size: 18
+                            color: Theme.surfaceText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        StyledText {
+                            text: "Omarchy-Themes online suchen…"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        id: searchMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Quickshell.execDetached(["ghostty", "--class=themectl.picker", "-e", "bash", "-c",
+                                "read -p 'Theme suchen (leer = beliebteste): ' q; " + root.themectl +
+                                " omarchy search $q --limit 60 --pick; echo; read -p 'Enter zum Schließen'"])
+                            if (popout.closePopout)
+                                popout.closePopout()
+                        }
+                    }
+                }
+
                 StyledText {
                     anchors.centerIn: parent
                     visible: root.themes.length === 0
@@ -105,7 +150,11 @@ PluginComponent {
 
                 GridView {
                     id: grid
-                    anchors.fill: parent
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: searchButton.top
+                    anchors.bottomMargin: Theme.spacingS
                     clip: true
                     cellWidth: Math.floor(width / 2)
                     cellHeight: 190

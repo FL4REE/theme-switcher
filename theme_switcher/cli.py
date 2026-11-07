@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -286,6 +287,8 @@ def _terminal_cmd(inner: list[str]) -> list[str] | None:
 
 
 def cmd_omarchy(args, cfg, store):
+    if args.omarchy_cmd == "search":
+        return cmd_omarchy_search(args, cfg, store)
     with omarchy.Source(args.source) as src:
         name = args.name or omarchy.default_name(src.path, src.repo_name)
         theme = omarchy.theme_from_dir(src.path, name, args.wallpaper)
@@ -317,6 +320,62 @@ def cmd_icons(args, cfg, store):
     for n in names:
         print(f"  {'●' if n == cur else ' '} {n}")
     return 0
+
+
+def cmd_omarchy_search(args, cfg, store):
+    results = omarchy.search(" ".join(args.query), args.limit)
+    if not results:
+        print("Nichts gefunden.")
+        return 1
+    installed = {t.path.name for t in store.list() if t.path}
+
+    def line(i: int, r: dict) -> str:
+        mark = "✓" if r["name"].lower() in installed else " "
+        desc = f" – {r['description'][:60]}" if r["description"] else ""
+        return f"{i:>2}. {mark} {r['name']:<22} ★{r['stars']:<5} {r['repo']}{desc}"
+
+    lines = [line(i, r) for i, r in enumerate(results, 1)]
+    chosen: list[dict] = []
+    if args.install:
+        for n in args.install:
+            if not 1 <= n <= len(results):
+                print(f"Nummer {n} gibt es nicht (1–{len(results)})", file=sys.stderr)
+                return 1
+            chosen.append(results[n - 1])
+    elif args.pick:
+        menu = None
+        if sys.stdin.isatty() and shutil.which("fzf"):
+            menu = ["fzf", "--multi", "--prompt", "Omarchy-Theme> ", "--header", "Tab = mehrere wählen, Enter = importieren"]
+        else:
+            for tool, cmd in (("fuzzel", ["fuzzel", "--dmenu", "--width", "90"]), ("rofi", ["rofi", "-dmenu", "-multi-select"]), ("wofi", ["wofi", "--dmenu"])):
+                if shutil.which(tool):
+                    menu = cmd
+                    break
+        if menu is None:
+            print("Kein Auswahlmenü gefunden (fzf, fuzzel, rofi oder wofi).", file=sys.stderr)
+            return 1
+        res = subprocess.run(menu, input="\n".join(lines), stdout=subprocess.PIPE, text=True)
+        for sel in res.stdout.splitlines():
+            m = re.match(r"\s*(\d+)\.", sel)
+            if m:
+                chosen.append(results[int(m.group(1)) - 1])
+    else:
+        print("\n".join(lines))
+        cmd = " ".join(["themectl omarchy search", *args.query, "--install <Nr> [<Nr> …]"])
+        print(f"\nImportieren: {cmd}   (✓ = schon vorhanden)")
+        return 0
+
+    rc = 0
+    for r in chosen:
+        print(f"▶ {r['repo']}")
+        ns = argparse.Namespace(source=r["url"], name=None, wallpaper=None, apply=args.apply and len(chosen) == 1,
+                                force=args.force, omarchy_cmd="import")
+        try:
+            rc |= cmd_omarchy(ns, cfg, store)
+        except (FileNotFoundError, FileExistsError, ValueError) as e:
+            print(f"  ✗ {e}")
+            rc = 1
+    return rc
 
 
 def cmd_pick(args, cfg, store):
@@ -452,6 +511,13 @@ def build_parser() -> argparse.ArgumentParser:
     oi.add_argument("--wallpaper", help="welcher Hintergrund aus backgrounds/ (Nummer oder Namensteil)")
     oi.add_argument("--apply", action="store_true", help="direkt anwenden")
     oi.add_argument("-f", "--force", action="store_true")
+    osr = osub.add_parser("search", help="Omarchy-Themes auf GitHub suchen")
+    osr.add_argument("query", nargs="*", help="Suchbegriff, z. B. 'nord' oder 'dark green' (leer = beliebteste)")
+    osr.add_argument("--limit", type=int, default=30, help="maximale Anzahl Treffer")
+    osr.add_argument("--install", type=int, nargs="+", metavar="NR", help="Treffer mit diesen Nummern importieren")
+    osr.add_argument("--pick", action="store_true", help="Treffer im Menü auswählen und importieren")
+    osr.add_argument("--apply", action="store_true", help="bei genau einem Import direkt anwenden")
+    osr.add_argument("-f", "--force", action="store_true")
     s.set_defaults(fn=cmd_omarchy)
 
     s = sub.add_parser("icons", help="Icon-Themes anzeigen oder einem Theme zuweisen")

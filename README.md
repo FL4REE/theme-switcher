@@ -136,6 +136,22 @@ themectl icons miasma auto           # wieder automatisch (Yaru passend zum Akze
 
 ## Omarchy-Themes
 
+### Suchen
+
+```bash
+themectl omarchy search                 # beliebteste Omarchy-Themes auf GitHub
+themectl omarchy search nord            # nach Begriff suchen
+themectl omarchy search green --pick    # im Menü (fzf/fuzzel) auswählen und importieren
+themectl omarchy search --install 1 4   # Treffer 1 und 4 importieren
+```
+
+Gesucht werden GitHub-Repos namens `omarchy-<name>-theme`, sortiert nach Sternen. Ein ✓ zeigt
+an, dass das Theme schon da ist. Ohne Anmeldung erlaubt GitHub etwa 10 Suchen pro Minute;
+ist `gh` angemeldet, wird dessen Token genutzt. Die Suche gibt es auch als Knopf in der
+Theme-Galerie und im Desktop-Kontextmenü.
+
+### Importieren
+
 Jedes Omarchy-Theme lässt sich direkt von GitHub übernehmen:
 
 ```bash

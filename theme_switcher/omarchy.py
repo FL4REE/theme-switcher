@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import tempfile
 import tomllib
+import urllib.error
 from pathlib import Path
 
 from . import colors as c
@@ -216,3 +217,59 @@ def theme_from_dir(theme_dir: Path, name: str, wallpaper: str | None = None) -> 
         icon_theme=icon_theme,
         source=f"omarchy:{used}",
     )
+
+
+# ---------------------------------------------------------------------------
+# Suche auf GitHub
+# ---------------------------------------------------------------------------
+_THEME_REPO = re.compile(r"^omarchy-.+-theme$", re.I)
+
+
+def search(query: str = "", limit: int = 30) -> list[dict]:
+    """Sucht Omarchy-Themes auf GitHub (Repos namens omarchy-<name>-theme).
+
+    Nutzt die öffentliche Such-API. Ohne Token sind etwa 10 Suchen pro Minute
+    erlaubt; mit GITHUB_TOKEN (oder ``gh auth token``) deutlich mehr.
+    """
+    import json
+    import os
+    import urllib.parse
+    import urllib.request
+
+    terms = " ".join(query.split())
+    q = f"{terms} omarchy theme in:name fork:true".strip()
+    url = "https://api.github.com/search/repositories?" + urllib.parse.urlencode(
+        {"q": q, "sort": "stars", "order": "desc", "per_page": 100}
+    )
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "themectl"})
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not token and shutil.which("gh"):
+        res = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
+        token = res.stdout.strip() if res.returncode == 0 else None
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.load(resp)
+    except urllib.error.HTTPError as e:  # type: ignore[attr-defined]
+        if e.code in (403, 429):
+            raise ValueError("GitHub-Limit erreicht, bitte eine Minute warten (oder 'gh auth login')") from None
+        raise ValueError(f"GitHub-Suche fehlgeschlagen: HTTP {e.code}") from None
+    except OSError as e:
+        raise ValueError(f"GitHub nicht erreichbar: {e}") from None
+
+    results = []
+    for item in data.get("items", []):
+        if not _THEME_REPO.match(item.get("name", "")):
+            continue
+        results.append({
+            "repo": item["full_name"],
+            "name": default_name(Path(item["name"]), item["name"]),
+            "stars": item.get("stargazers_count", 0),
+            "description": (item.get("description") or "").strip(),
+            "url": item["html_url"],
+            "branch": item.get("default_branch", "main"),
+        })
+        if len(results) >= limit:
+            break
+    return results

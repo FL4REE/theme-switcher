@@ -291,6 +291,25 @@ class NvimTest(unittest.TestCase):
             env.tmp.cleanup()
 
 
+class OmarchySearchTest(unittest.TestCase):
+    def test_search_filters_theme_repos(self):
+        import io
+        from unittest import mock
+        from theme_switcher import omarchy
+        payload = json.dumps({"items": [
+            {"name": "omarchy-nord-theme", "full_name": "a/omarchy-nord-theme", "stargazers_count": 5,
+             "description": "Nord", "html_url": "https://github.com/a/omarchy-nord-theme"},
+            {"name": "omarchy-theme-hook", "full_name": "b/omarchy-theme-hook", "stargazers_count": 99,
+             "description": "kein Theme", "html_url": "https://github.com/b/omarchy-theme-hook"},
+        ]}).encode()
+        fake = mock.MagicMock()
+        fake.__enter__.return_value = io.BytesIO(payload)
+        with mock.patch("urllib.request.urlopen", return_value=fake), mock.patch.dict(os.environ, {"GITHUB_TOKEN": "x"}):
+            res = omarchy.search("nord")
+        self.assertEqual([r["name"] for r in res], ["nord"])
+        self.assertEqual(res[0]["url"], "https://github.com/a/omarchy-nord-theme")
+
+
 class IconsTest(unittest.TestCase):
     def test_nearest_yaru(self):
         from theme_switcher.targets.icons import nearest_yaru

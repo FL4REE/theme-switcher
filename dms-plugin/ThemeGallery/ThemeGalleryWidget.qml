@@ -119,7 +119,7 @@ PluginComponent {
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         StyledText {
-                            text: "Alle im Fenster"
+                            text: "Galerie-App"
                             font.pixelSize: Theme.fontSizeSmall
                             color: Theme.surfaceText
                             anchors.verticalCenter: parent.verticalCenter
@@ -190,9 +190,52 @@ PluginComponent {
                     color: Theme.surfaceVariantText
                 }
 
+                // Großer Knopf oben: Galerie-App öffnen
+                Rectangle {
+                    id: openAppButton
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: Theme.spacingXS
+                    height: 40
+                    radius: Theme.cornerRadius
+                    color: openAppMouse.containsMouse ? Qt.lighter(Theme.primary, 1.1) : Theme.primary
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: Theme.spacingS
+                        DankIcon {
+                            name: "open_in_new"
+                            size: 18
+                            color: Theme.primaryText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        StyledText {
+                            text: "Theme Galerie öffnen"
+                            font.pixelSize: Theme.fontSizeMedium
+                            font.weight: Font.Medium
+                            color: Theme.primaryText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        id: openAppMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Quickshell.execDetached([root.themectl, "gallery"])
+                            if (popout.closePopout)
+                                popout.closePopout()
+                        }
+                    }
+                }
+
                 GridView {
                     id: grid
-                    anchors.top: parent.top
+                    anchors.top: openAppButton.bottom
+                    anchors.topMargin: Theme.spacingS
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.bottom: searchButton.top

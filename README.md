@@ -67,7 +67,7 @@ Das Fenster läuft mit Quickshell (`qs`), das DMS ohnehin mitbringt. Es hat zwei
 - **Online (Omarchy)**: bis zu 100 Omarchy-Themes von GitHub mit Vorschaubild, Sternen und Beschreibung.
   Knöpfe *Importieren* und *Import + Anwenden*, schon vorhandene Themes haben einen farbigen Rahmen.
 
-Die Farben des Fensters kommen vom aktiven Theme. Im Leisten-Widget gibt es dafür den Knopf „Alle im Fenster“.
+Die Farben des Fensters kommen vom aktiven Theme. Im Leisten-Widget öffnet der Knopf „Theme Galerie öffnen“ oben im Popup die App.
 
 ## Hotkeys (Hyprland-Lua)
 

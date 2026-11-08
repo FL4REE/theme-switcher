@@ -437,3 +437,36 @@ class GalleryTest(unittest.TestCase):
             self.assertIn("Name=Theme Galerie", text)
             self.assertIn(" gallery", text)
 
+
+class SourcesTest(unittest.TestCase):
+    def test_ghostty(self):
+        from theme_switcher import sources
+        text = "\n".join(f"palette = {i}=#{i:02x}{i:02x}{i:02x}" for i in range(16)) + "\nbackground = #101010\nforeground = #eeeeee\n"
+        ansi, ext = sources.palette_from_ghostty(text)
+        self.assertEqual(len(ansi), 16)
+        self.assertEqual(ext["background"], "#101010")
+
+    def test_base16_and_base24(self):
+        from theme_switcher import sources
+        keys = [f"base0{x}" for x in "0123456789ABCDEF"] + [f"base1{x}" for x in "01234567"]
+        text = 'name: "Test"\nvariant: "light"\npalette:\n' + "\n".join(f'  {k}: "#{i:02x}{i:02x}{i:02x}"' for i, k in enumerate(keys))
+        ansi, ext, name, variant = sources.palette_from_base16(text)
+        self.assertEqual((name, variant), ("Test", "light"))
+        self.assertEqual(ext["accent"], "#0d0d0d")
+        self.assertEqual(ansi[9], ansi[1])
+        ansi24, *_ = sources.palette_from_base16(text, base24=True)
+        self.assertEqual(ansi24[9], "#121212")
+
+    def test_browse_filter(self):
+        from theme_switcher import sources
+        old = sources._contents
+        sources._contents = lambda repo, path, cache: [
+            {"name": "Gruvbox Dark", "type": "file", "download_url": "x"},
+            {"name": "Nord", "type": "file", "download_url": "y"},
+            {"name": "README.md", "type": "file", "download_url": "z"}]
+        try:
+            self.assertEqual([e["name"] for e in sources.browse("iterm2", "gruv")], ["Gruvbox Dark"])
+            self.assertEqual(sources.browse("base16"), [])
+        finally:
+            sources._contents = old
+

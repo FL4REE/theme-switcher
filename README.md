@@ -152,6 +152,33 @@ themectl icons miasma Papirus-Dark   # festes Icon-Theme für ein Theme
 themectl icons miasma auto           # wieder automatisch (Yaru passend zum Akzent)
 ```
 
+## Weitere Online-Quellen
+
+Neben Omarchy-Themes kennt themectl noch andere Sammlungen:
+
+| Quelle         | Inhalt | Wallpaper |
+|----------------|--------|-----------|
+| `omarchy`      | Omarchy-Themes der Community (GitHub-Suche `omarchy-*-theme`) | ja |
+| `omarchy-core` | die offiziellen Omarchy-Themes aus [basecamp/omarchy](https://github.com/basecamp/omarchy/tree/master/themes) | ja |
+| `iterm2`       | [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes), über 400 Terminal-Farbschemata | nein |
+| `base16`       | [tinted-theming](https://github.com/tinted-theming/schemes) Base16-Schemata | nein |
+| `base24`       | tinted-theming Base24-Schemata (mit eigenen hellen Farben) | nein |
+
+```bash
+themectl online sources                      # Quellen anzeigen
+themectl online browse iterm2 gruvbox        # Einträge einer Quelle, optional gefiltert
+themectl online import iterm2 "Gruvbox Dark" --apply
+themectl online import omarchy-core tokyo-night --wallpaper 2
+themectl gallery --source base16             # Galerie gleich mit dieser Quelle öffnen
+```
+
+Die Liste einer Quelle wird einen Tag lang in `~/.cache/theme-switcher/sources/` gespeichert.
+Themes ohne Wallpaper lassen deinen Hintergrund beim Anwenden in Ruhe. Mit
+`themectl edit <name>` kannst du nachträglich ein Bild eintragen.
+
+In der Galerie stehen die Quellen als Knöpfe über dem Online-Tab. Schemata ohne Vorschaubild
+werden als Mini-Terminal in ihren eigenen Farben gezeigt.
+
 ## Omarchy-Themes
 
 ### Suchen

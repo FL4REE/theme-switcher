@@ -11,11 +11,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import __version__, aether, omarchy
+from . import __version__, aether, omarchy, sources
 from . import colors as c
 from .config import Config
 from .model import Palette, Theme
-from .store import Store
+from .store import Store, slugify
 from .targets import TARGETS
 from .targets import dms as dms_target
 from .targets import icons as icons_target
@@ -308,6 +308,58 @@ def cmd_omarchy(args, cfg, store):
     return 0
 
 
+def cmd_online(args, cfg, store):
+    if args.online_cmd in (None, "sources"):
+        data = [{"key": s.key, "title": s.title, "description": s.description,
+                 "repo": s.repo or "GitHub-Suche"} for s in sources.SOURCES.values()]
+        if getattr(args, "json", False):
+            print(json.dumps(data, ensure_ascii=False))
+        else:
+            for d in data:
+                print(f"  {d['key']:<13} {d['title']:<20} {d['description']}")
+            print("\nAnzeigen: themectl online browse <quelle> [begriff]")
+        return 0
+    if args.online_cmd == "browse":
+        try:
+            items = sources.browse(args.source, " ".join(args.query), args.limit, cfg.cache_dir)
+        except ValueError as e:
+            if args.json:
+                print(json.dumps({"error": str(e)}, ensure_ascii=False))
+                return 1
+            raise
+        installed = {t.path.name for t in store.list() if t.path}
+        for it in items:
+            it["installed"] = slugify(it["name"]) in installed
+        if args.json:
+            print(json.dumps(items, ensure_ascii=False))
+            return 0
+        if not items:
+            print("Nichts gefunden.")
+            return 1
+        for it in items:
+            mark = "✓" if it["installed"] else " "
+            print(f"  {mark} {it['id']}")
+        print(f"\n{len(items)} Einträge. Übernehmen: themectl online import {args.source} <eintrag> [--apply]")
+        return 0
+    # import
+    rc = 0
+    for entry in args.entries:
+        try:
+            with sources.temp_workdir() as tmp:
+                theme = sources.fetch_theme(args.source, entry, cfg.cache_dir, args.wallpaper, Path(tmp))
+                if args.name and len(args.entries) == 1:
+                    theme.name = args.name
+                d = store.save(theme, overwrite=args.force)
+            print(f"✓ {theme.name} → {d}")
+        except (ValueError, FileExistsError, FileNotFoundError) as e:
+            print(f"✗ {entry}: {e}", file=sys.stderr)
+            rc = 1
+            continue
+        if args.apply and len(args.entries) == 1:
+            return apply_theme(store.get(theme.name), cfg, store, None, False)
+    return rc
+
+
 GALLERY_QML = Path(__file__).resolve().parent.parent / "app" / "ThemeGallery" / "shell.qml"
 DESKTOP_FILE = """[Desktop Entry]
 Type=Application
@@ -343,9 +395,11 @@ def cmd_gallery(args, cfg, store):
         print(f"Galerie nicht gefunden: {GALLERY_QML}", file=sys.stderr)
         return 1
     env = dict(os.environ, THEMECTL=_themectl_exe())
-    if args.online is not None:
+    if args.source:
+        env["THEME_GALLERY_SOURCE"] = args.source
+    if args.online is not None or args.source:
         env["THEME_GALLERY_TAB"] = "online"
-        env["THEME_GALLERY_QUERY"] = " ".join(args.online)
+        env["THEME_GALLERY_QUERY"] = " ".join(args.online or [])
     subprocess.Popen([qs, "-p", str(GALLERY_QML)], env=env, start_new_session=True,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return 0
@@ -588,9 +642,28 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--menu", choices=["fuzzel", "rofi", "wofi", "fzf"])
     s.set_defaults(fn=cmd_pick)
 
+    s = sub.add_parser("online", help="Themes aus Online-Quellen (Omarchy, iTerm2-Schemata, Base16 …)")
+    onsub = s.add_subparsers(dest="online_cmd")
+    o = onsub.add_parser("sources", help="verfügbare Quellen anzeigen")
+    o.add_argument("--json", action="store_true")
+    o = onsub.add_parser("browse", help="Einträge einer Quelle anzeigen")
+    o.add_argument("source", choices=list(sources.SOURCES))
+    o.add_argument("query", nargs="*", help="Suchbegriff")
+    o.add_argument("--limit", type=int, default=0, help="höchstens so viele Einträge (0 = alle)")
+    o.add_argument("--json", action="store_true")
+    o = onsub.add_parser("import", help="Einträge als Theme speichern")
+    o.add_argument("source", choices=list(sources.SOURCES))
+    o.add_argument("entries", nargs="+", help="Eintrag/Einträge, wie sie 'browse' anzeigt")
+    o.add_argument("--name", help="anderer Name (nur bei einem Eintrag)")
+    o.add_argument("--wallpaper", help="Hintergrund Nummer/Name (omarchy-core)")
+    o.add_argument("--apply", action="store_true", help="bei einem Eintrag direkt anwenden")
+    o.add_argument("-f", "--force", action="store_true", help="vorhandenes Theme überschreiben")
+    s.set_defaults(fn=cmd_online)
+
     s = sub.add_parser("gallery", aliases=["app"], help="Theme-Galerie als eigenes Fenster öffnen")
     s.add_argument("--install", action="store_true", help="Starter 'Theme Galerie' fürs App-Menü anlegen")
     s.add_argument("--online", nargs="*", metavar="BEGRIFF", help="gleich den Online-Tab öffnen (optional mit Suchbegriff)")
+    s.add_argument("--source", choices=list(sources.SOURCES), help="Online-Tab mit dieser Quelle öffnen")
     s.set_defaults(fn=cmd_gallery)
 
     sub.add_parser("next", help="Nächstes Theme anwenden").set_defaults(fn=cmd_cycle)

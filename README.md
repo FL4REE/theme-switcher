@@ -52,6 +52,23 @@ Plugins) und dann in den Leisten-Einstellungen als Widget hinzufügen. In der Le
 ein Palette-Symbol und der Name des aktiven Themes. Ein Klick öffnet die Galerie mit
 Wallpaper, Mini-Fenster und Farben jedes Themes, ein Klick auf eine Karte wendet es an.
 
+## Theme Galerie als eigene App
+
+```bash
+themectl gallery                 # Fenster mit allen Themes (ohne Begrenzung, mit Filter)
+themectl gallery --online nord   # gleich im Online-Tab nach Omarchy-Themes suchen
+themectl gallery --install       # Starter „Theme Galerie“ fürs App-Menü (macht install.sh auch)
+```
+
+Das Fenster läuft mit Quickshell (`qs`), das DMS ohnehin mitbringt. Es hat zwei Tabs:
+
+- **Meine Themes**: alle gespeicherten Themes mit Wallpaper, Mini-Fenster und Farben. Klick wendet an,
+  Strg+F filtert, Esc schließt.
+- **Online (Omarchy)**: bis zu 100 Omarchy-Themes von GitHub mit Vorschaubild, Sternen und Beschreibung.
+  Knöpfe *Importieren* und *Import + Anwenden*, schon vorhandene Themes haben einen farbigen Rahmen.
+
+Die Farben des Fensters kommen vom aktiven Theme. Im Leisten-Widget gibt es dafür den Knopf „Alle im Fenster“.
+
 ## Hotkeys (Hyprland-Lua)
 
 In `~/.config/hypr/dms/binds-user.lua`:

@@ -23,4 +23,9 @@ ln -sfn "$PWD/dms-plugin/ThemeSwitcher" "$HOME/.config/dms/plugins/ThemeSwitcher
 ln -sfn "$PWD/dms-plugin/ThemeGallery" "$HOME/.config/dms/plugins/ThemeGallery"
 echo "✓ DMS-Plugins verlinkt. In DMS: Einstellungen → Plugins → Scan → 'Theme Switcher' und 'Theme Galerie' aktivieren"
 
+# Eigene App "Theme Galerie" im App-Menü (Super+Space)
+if command -v themectl >/dev/null || [ -x "$HOME/.local/bin/themectl" ]; then
+  "$(command -v themectl || echo "$HOME/.local/bin/themectl")" gallery --install
+fi
+
 echo "✓ Fertig. Probier: themectl --help"

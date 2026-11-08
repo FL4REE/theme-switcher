@@ -416,3 +416,24 @@ class IconsTest(unittest.TestCase):
             os.environ.pop("XDG_DATA_DIRS", None)
             os.environ["PATH"] = path
             env.tmp.cleanup()
+
+
+class GalleryTest(unittest.TestCase):
+    def test_qml_exists_and_desktop_file(self):
+        from theme_switcher import cli
+        self.assertTrue(cli.GALLERY_QML.exists())
+        with tempfile.TemporaryDirectory() as d:
+            old = os.environ.get("XDG_DATA_HOME")
+            os.environ["XDG_DATA_HOME"] = d
+            try:
+                rc = cli.main(["gallery", "--install"])
+            finally:
+                if old is None:
+                    os.environ.pop("XDG_DATA_HOME")
+                else:
+                    os.environ["XDG_DATA_HOME"] = old
+            self.assertEqual(rc, 0)
+            text = (Path(d) / "applications" / "themectl-gallery.desktop").read_text()
+            self.assertIn("Name=Theme Galerie", text)
+            self.assertIn(" gallery", text)
+

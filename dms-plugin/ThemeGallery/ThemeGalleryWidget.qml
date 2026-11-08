@@ -97,9 +97,53 @@ PluginComponent {
 
                 // Omarchy-Themes online suchen (öffnet ein Terminal mit Suche + Auswahl)
                 Rectangle {
+                    id: appButton
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.horizontalCenter
+                    anchors.rightMargin: Theme.spacingXS
+                    width: appRow.implicitWidth + Theme.spacingL * 2
+                    height: 36
+                    radius: Theme.cornerRadius
+                    color: appMouse.containsMouse ? Theme.surfaceContainerHigh : Theme.surfaceContainer
+                    border.color: Theme.outlineStrong
+                    border.width: 1
+
+                    Row {
+                        id: appRow
+                        anchors.centerIn: parent
+                        spacing: Theme.spacingS
+                        DankIcon {
+                            name: "open_in_new"
+                            size: 18
+                            color: Theme.surfaceText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        StyledText {
+                            text: "Alle im Fenster"
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.surfaceText
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        id: appMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            Quickshell.execDetached([root.themectl, "gallery"])
+                            if (popout.closePopout)
+                                popout.closePopout()
+                        }
+                    }
+                }
+
+                Rectangle {
                     id: searchButton
                     anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.left: parent.horizontalCenter
+                    anchors.leftMargin: Theme.spacingXS
                     width: searchRow.implicitWidth + Theme.spacingL * 2
                     height: 36
                     radius: Theme.cornerRadius
@@ -118,7 +162,7 @@ PluginComponent {
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         StyledText {
-                            text: "Omarchy-Themes online suchen…"
+                            text: "Online suchen"
                             font.pixelSize: Theme.fontSizeSmall
                             color: Theme.surfaceText
                             anchors.verticalCenter: parent.verticalCenter
@@ -131,9 +175,7 @@ PluginComponent {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            Quickshell.execDetached(["ghostty", "--class=themectl.picker", "-e", "bash", "-c",
-                                "read -p 'Theme suchen (leer = beliebteste): ' q; " + root.themectl +
-                                " omarchy search $q --limit 60 --pick; echo; read -p 'Enter zum Schließen'"])
+                            Quickshell.execDetached([root.themectl, "gallery", "--online"])
                             if (popout.closePopout)
                                 popout.closePopout()
                         }

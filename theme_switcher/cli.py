@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -307,6 +308,49 @@ def cmd_omarchy(args, cfg, store):
     return 0
 
 
+GALLERY_QML = Path(__file__).resolve().parent.parent / "app" / "ThemeGallery" / "shell.qml"
+DESKTOP_FILE = """[Desktop Entry]
+Type=Application
+Name=Theme Galerie
+GenericName=Theme-Auswahl
+Comment=Alle themectl-Themes ansehen, anwenden und Omarchy-Themes online suchen
+Exec={exe} gallery
+Icon=preferences-desktop-theme
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=theme;themes;farben;wallpaper;omarchy;
+"""
+
+
+def _themectl_exe() -> str:
+    exe = shutil.which("themectl")
+    return exe or str(Path.home() / ".local/bin/themectl")
+
+
+def cmd_gallery(args, cfg, store):
+    if args.install:
+        apps = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share") / "applications"
+        apps.mkdir(parents=True, exist_ok=True)
+        target = apps / "themectl-gallery.desktop"
+        target.write_text(DESKTOP_FILE.format(exe=_themectl_exe()))
+        print(f"✓ Starter angelegt: {target}")
+        return 0
+    qs = shutil.which("qs") or shutil.which("quickshell")
+    if not qs:
+        print("Quickshell (qs) nicht gefunden, die Galerie braucht es.", file=sys.stderr)
+        return 1
+    if not GALLERY_QML.exists():
+        print(f"Galerie nicht gefunden: {GALLERY_QML}", file=sys.stderr)
+        return 1
+    env = dict(os.environ, THEMECTL=_themectl_exe())
+    if args.online is not None:
+        env["THEME_GALLERY_TAB"] = "online"
+        env["THEME_GALLERY_QUERY"] = " ".join(args.online)
+    subprocess.Popen([qs, "-p", str(GALLERY_QML)], env=env, start_new_session=True,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return 0
+
+
 def cmd_icons(args, cfg, store):
     if args.name:
         t = store.get(args.name)
@@ -323,11 +367,25 @@ def cmd_icons(args, cfg, store):
 
 
 def cmd_omarchy_search(args, cfg, store):
-    results = omarchy.search(" ".join(args.query), args.limit)
+    try:
+        results = omarchy.search(" ".join(args.query), args.limit)
+    except ValueError as e:
+        if args.json:
+            print(json.dumps({"error": str(e)}, ensure_ascii=False))
+            return 1
+        raise
+    if not results and args.json:
+        print("[]")
+        return 0
     if not results:
         print("Nichts gefunden.")
         return 1
     installed = {t.path.name for t in store.list() if t.path}
+    if args.json:
+        for r in results:
+            r["installed"] = r["name"].lower() in installed
+        print(json.dumps(results, ensure_ascii=False))
+        return 0
 
     def line(i: int, r: dict) -> str:
         mark = "✓" if r["name"].lower() in installed else " "
@@ -518,6 +576,7 @@ def build_parser() -> argparse.ArgumentParser:
     osr.add_argument("--pick", action="store_true", help="Treffer im Menü auswählen und importieren")
     osr.add_argument("--apply", action="store_true", help="bei genau einem Import direkt anwenden")
     osr.add_argument("-f", "--force", action="store_true")
+    osr.add_argument("--json", action="store_true", help="Treffer als JSON ausgeben (für die Galerie-App)")
     s.set_defaults(fn=cmd_omarchy)
 
     s = sub.add_parser("icons", help="Icon-Themes anzeigen oder einem Theme zuweisen")
@@ -528,6 +587,11 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("pick", help="Theme über ein Menü (fuzzel/rofi/wofi/fzf) auswählen")
     s.add_argument("--menu", choices=["fuzzel", "rofi", "wofi", "fzf"])
     s.set_defaults(fn=cmd_pick)
+
+    s = sub.add_parser("gallery", aliases=["app"], help="Theme-Galerie als eigenes Fenster öffnen")
+    s.add_argument("--install", action="store_true", help="Starter 'Theme Galerie' fürs App-Menü anlegen")
+    s.add_argument("--online", nargs="*", metavar="BEGRIFF", help="gleich den Online-Tab öffnen (optional mit Suchbegriff)")
+    s.set_defaults(fn=cmd_gallery)
 
     sub.add_parser("next", help="Nächstes Theme anwenden").set_defaults(fn=cmd_cycle)
     sub.add_parser("prev", help="Vorheriges Theme anwenden").set_defaults(fn=cmd_cycle)

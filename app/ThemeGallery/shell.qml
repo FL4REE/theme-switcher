@@ -111,6 +111,20 @@ ShellRoot {
         applyProc.running = true
     }
 
+    // Zufälliges Theme aus der (gefilterten) Liste, nie das aktive
+    function applyRandom() {
+        const list = grid.model || []
+        const pool = list.filter(t => !t.current)
+        if (pool.length === 0) {
+            shell.status = list.length ? "Kein anderes Theme zur Auswahl" : "Keine Themes"
+            return
+        }
+        const pick = pool[Math.floor(Math.random() * pool.length)]
+        tabs.currentIndex = 0
+        grid.positionViewAtIndex(list.indexOf(pick), GridView.Contain)
+        shell.applyTheme(pick.id)
+    }
+
     Process {
         id: searchProc
         stdout: StdioCollector {
@@ -194,6 +208,7 @@ ShellRoot {
 
         Shortcut { sequence: "Escape"; onActivated: Qt.quit() }
         Shortcut { sequence: "Ctrl+F"; onActivated: filterField.forceActiveFocus() }
+        Shortcut { sequence: "Ctrl+R"; onActivated: shell.applyRandom() }
 
         ColumnLayout {
             anchors.fill: parent
@@ -238,6 +253,30 @@ ShellRoot {
                 }
 
                 Item { Layout.fillWidth: true }
+
+                // Zufälliges Theme anwenden (beachtet den Filter), Strg+R
+                Rectangle {
+                    visible: tabs.currentIndex === 0
+                    implicitWidth: randomLabel.implicitWidth + 28
+                    implicitHeight: 36
+                    radius: 18
+                    color: randomMouse.containsMouse ? shell.surfaceHigh : shell.surface
+                    border.color: shell.outline
+                    Text {
+                        id: randomLabel
+                        anchors.centerIn: parent
+                        text: "⚄  Zufall"
+                        color: shell.fg
+                        font.pixelSize: 14
+                    }
+                    MouseArea {
+                        id: randomMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: shell.applyRandom()
+                    }
+                }
 
                 Rectangle {
                     Layout.preferredWidth: 340

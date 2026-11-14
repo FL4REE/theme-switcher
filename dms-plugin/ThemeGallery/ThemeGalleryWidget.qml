@@ -37,6 +37,14 @@ PluginComponent {
         refreshTimer.restart()
     }
 
+    // Zufälliges Theme, nie das aktive
+    function applyRandom() {
+        const pool = root.themes.filter(t => !t.current)
+        if (pool.length === 0)
+            return
+        root.applyTheme(pool[Math.floor(Math.random() * pool.length)].id)
+    }
+
     // Nach einem Wechsel (auch über Launcher/Hotkey) den Namen in der Leiste aktuell halten
     Timer {
         id: refreshTimer
@@ -195,7 +203,7 @@ PluginComponent {
                     id: openAppButton
                     anchors.top: parent.top
                     anchors.left: parent.left
-                    anchors.right: parent.right
+                    anchors.right: randomButton.left
                     anchors.margins: Theme.spacingXS
                     height: 40
                     radius: Theme.cornerRadius
@@ -229,6 +237,34 @@ PluginComponent {
                             if (popout.closePopout)
                                 popout.closePopout()
                         }
+                    }
+                }
+
+                // Würfel neben dem großen Knopf: zufälliges Theme (Popup bleibt offen)
+                Rectangle {
+                    id: randomButton
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: Theme.spacingXS
+                    width: 40
+                    height: 40
+                    radius: Theme.cornerRadius
+                    visible: root.themes.length > 1
+                    color: randomMouse.containsMouse ? Qt.lighter(Theme.primary, 1.1) : Theme.primary
+
+                    DankIcon {
+                        anchors.centerIn: parent
+                        name: "casino"
+                        size: 20
+                        color: Theme.primaryText
+                    }
+
+                    MouseArea {
+                        id: randomMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.applyRandom()
                     }
                 }
 

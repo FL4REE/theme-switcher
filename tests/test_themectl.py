@@ -118,6 +118,23 @@ class ThemectlTest(unittest.TestCase):
         second = (self.env.root / "state/current").read_text().strip()
         self.assertNotEqual(first, second)
 
+    def test_random_skips_current(self):
+        for n, bg in (("a", "#101014"), ("b", "#121212"), ("c", "#fafafa")):
+            self.assertEqual(self.env.run("create", n, "--bg", bg, "--accent", "#ff8800"), 0)
+        self.assertEqual(self.env.run("apply", "a", "--only", "ghostty"), 0)
+        state = self.env.root / "state/current"
+        for _ in range(15):
+            before = state.read_text().strip()
+            self.assertEqual(self.env.run("random", "--mode", "dark"), 0)
+            after = state.read_text().strip()
+            self.assertNotEqual(before, after)
+            self.assertIn(after, ("a", "b"))
+        # nur ein passendes Theme, und das ist aktiv: trotzdem kein Fehler
+        self.assertEqual(self.env.run("random", "--mode", "light"), 0)
+        self.assertEqual(self.env.run("random", "--mode", "light"), 0)
+        self.assertEqual(state.read_text().strip(), "c")
+        self.assertEqual(self.env.run("random", "gibtsnicht"), 1)
+
     def test_list_json(self):
         import contextlib, io
         self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")

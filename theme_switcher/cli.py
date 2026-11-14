@@ -543,6 +543,31 @@ def cmd_cycle(args, cfg, store):
     return rc
 
 
+def cmd_random(args, cfg, store):
+    """Wendet ein zufälliges Theme an, nie das gerade aktive."""
+    import random
+
+    cur = store.current()
+    themes = [t for t in store.list() if t.path]
+    if args.mode:
+        themes = [t for t in themes if t.mode == args.mode]
+    if args.filter:
+        q = " ".join(args.filter).lower()
+        themes = [t for t in themes if q in f"{t.name} {t.path.name} {t.source or ''}".lower()]
+    pool = [t for t in themes if t.path.name != cur] or themes
+    if not pool:
+        print("Keine passenden Themes vorhanden.", file=sys.stderr)
+        return 1
+    choice = random.choice(pool)
+    print(choice.path.name)
+    if args.dry_run:
+        return 0
+    rc = apply_theme(choice, cfg, store, None, False)
+    if not sys.stdout.isatty():
+        _notify("Zufälliges Theme" if rc == 0 else "Theme-Wechsel mit Fehlern", choice.name)
+    return rc
+
+
 # ---------------------------------------------------------------------------
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="themectl", description="Themes für Hyprland + DMS speichern, wechseln und aus Aether importieren.")
@@ -668,6 +693,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("next", help="Nächstes Theme anwenden").set_defaults(fn=cmd_cycle)
     sub.add_parser("prev", help="Vorheriges Theme anwenden").set_defaults(fn=cmd_cycle)
+    s = sub.add_parser("random", aliases=["zufall"], help="Zufälliges Theme anwenden (nie das aktive)")
+    s.add_argument("filter", nargs="*", help="nur Themes, deren Name/Quelle diesen Text enthält")
+    s.add_argument("--mode", choices=["dark", "light"], help="nur dunkle bzw. helle Themes")
+    s.add_argument("--dry-run", action="store_true", help="nur den Namen ausgeben, nicht anwenden")
+    s.set_defaults(fn=cmd_random)
     return p
 
 

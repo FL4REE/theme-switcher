@@ -25,6 +25,8 @@ themectl apply forest               # Theme anwenden
 themectl apply forest --dry-run     # nur zeigen, was passieren würde
 themectl pick                       # Auswahlmenü (fuzzel/rofi/wofi/fzf)
 themectl next | prev                # durchschalten
+themectl random                     # zufälliges Theme (nie das aktive)
+themectl random --mode dark nord    # zufällig unter den dunklen mit "nord" im Namen
 ```
 
 Eigenes Theme aus Farben:
@@ -68,6 +70,8 @@ Das Fenster läuft mit Quickshell (`qs`), das DMS ohnehin mitbringt. Es hat zwei
   Knöpfe *Importieren* und *Import + Anwenden*, schon vorhandene Themes haben einen farbigen Rahmen.
 
 Die Farben des Fensters kommen vom aktiven Theme. Im Leisten-Widget öffnet der Knopf „Theme Galerie öffnen“ oben im Popup die App.
+
+Zufälliges Theme: In der Galerie-App gibt es den Knopf „Zufall“ (oder Strg+R), er beachtet den Filter. Im Leisten-Widget sitzt ein Würfel neben „Theme Galerie öffnen“, und im Launcher (`~`) steht „Zufälliges Theme“ ganz oben.
 
 ## Hotkeys (Hyprland-Lua)
 

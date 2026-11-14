@@ -103,6 +103,17 @@ Item {
         }
         // aktives Theme nach unten, damit Enter direkt ein anderes nimmt
         items.sort((a, b) => (a.icon === "material:check_circle") - (b.icon === "material:check_circle"))
+        // Zufalls-Eintrag oben (mit Suchtext: nur unter den Treffern)
+        const pool = items.filter(i => i.icon !== "material:check_circle")
+        if (pool.length > 1 || (pool.length === 1 && q.length === 0))
+            items.unshift({
+                name: "Zufälliges Theme",
+                icon: "material:casino",
+                comment: q.length > 0 ? "aus " + pool.length + " Treffern" : "irgendeins außer dem aktiven",
+                action: "random:" + q,
+                categories: ["Themes"],
+                keywords: ["zufall", "random"]
+            })
         return items
     }
 
@@ -112,6 +123,14 @@ Item {
         const idx = item.action.indexOf(":")
         const type = item.action.slice(0, idx)
         const data = item.action.slice(idx + 1)
+        if (type === "random") {
+            const words = data.length > 0 ? data.split(/\s+/) : []
+            Quickshell.execDetached([root.themectl, "random", ...words])
+            lastRefresh = 0
+            if (typeof ToastService !== "undefined")
+                ToastService.showInfo("Theme", "Zufälliges Theme wird angewendet")
+            return
+        }
         if (type !== "apply")
             return
 

@@ -135,6 +135,23 @@ class ThemectlTest(unittest.TestCase):
         self.assertEqual(state.read_text().strip(), "c")
         self.assertEqual(self.env.run("random", "gibtsnicht"), 1)
 
+    def test_delete_current_switches_first(self):
+        for n in ("a", "b", "c"):
+            self.assertEqual(self.env.run("create", n, "--bg", "#101014", "--accent", "#ff8800"), 0)
+        state = self.env.root / "state/current"
+        self.assertEqual(self.env.run("apply", "b", "--only", "ghostty"), 0)
+        # ohne Namen: das aktive Theme löschen, vorher zum nächsten wechseln
+        self.assertEqual(self.env.run("delete"), 0)
+        self.assertFalse((self.env.root / "themes/b").exists())
+        self.assertEqual(state.read_text().strip(), "c")
+        # nicht aktives Theme löschen: aktives bleibt
+        self.assertEqual(self.env.run("delete", "a"), 0)
+        self.assertEqual(state.read_text().strip(), "c")
+        # letztes Theme: wird gelöscht, kein aktives mehr
+        self.assertEqual(self.env.run("delete"), 0)
+        self.assertFalse(state.exists())
+        self.assertNotEqual(self.env.run("delete"), 0)
+
     def test_list_json(self):
         import contextlib, io
         self.env.run("create", "x", "--bg", "#101014", "--accent", "#ff8800")

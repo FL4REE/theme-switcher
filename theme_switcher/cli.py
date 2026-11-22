@@ -197,9 +197,40 @@ def cmd_edit(args, cfg, store):
 
 
 def cmd_delete(args, cfg, store):
-    store.delete(args.name)
-    print(f"✓ Gelöscht: {args.name}")
-    return 0
+    """Löscht ein Theme. Ohne Namen das aktive.
+
+    Ist das zu löschende Theme gerade aktiv, wird vorher auf das nächste
+    Theme gewechselt (wie `themectl next`), damit der Desktop nicht auf
+    gelöschte Dateien (z. B. das Wallpaper im Theme-Ordner) zeigt.
+    """
+    cur = store.current()
+    name = args.name or cur
+    if not name:
+        print("Kein Theme angegeben und kein aktives Theme bekannt.", file=sys.stderr)
+        return 1
+    theme = store.get(name)
+    tid = theme.path.name
+    rc = 0
+    switched = None
+    if tid == cur and not args.keep:
+        names = [t.path.name for t in store.list() if t.path]
+        others = [n for n in names if n != tid]
+        if others:
+            idx = names.index(tid)
+            switched = names[(idx + 1) % len(names)]
+            if switched == tid:
+                switched = others[0]
+            rc = apply_theme(store.get(switched), cfg, store, None, False)
+        else:
+            print("Hinweis: Das ist das letzte Theme, es wird nicht gewechselt.", file=sys.stderr)
+    store.delete(tid)
+    if store.current() == tid:
+        (cfg.state_dir / "current").unlink(missing_ok=True)
+    print(f"✓ Gelöscht: {theme.name}")
+    if not sys.stdout.isatty():
+        body = theme.name + (f" · jetzt aktiv: {store.get(switched).name}" if switched else "")
+        _notify("Theme gelöscht", body)
+    return rc
 
 
 def cmd_export(args, cfg, store):
@@ -613,8 +644,9 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("name")
     s.set_defaults(fn=cmd_edit)
 
-    s = sub.add_parser("delete", aliases=["rm"], help="Theme löschen")
-    s.add_argument("name")
+    s = sub.add_parser("delete", aliases=["rm"], help="Theme löschen (ohne Namen: das aktive)")
+    s.add_argument("name", nargs="?", help="Theme-Name; leer = aktives Theme")
+    s.add_argument("--keep", action="store_true", help="beim aktiven Theme nicht vorher wechseln")
     s.set_defaults(fn=cmd_delete)
 
     s = sub.add_parser("export", help="Theme als .tar.gz exportieren")

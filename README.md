@@ -27,6 +27,8 @@ themectl pick                       # Auswahlmenü (fuzzel/rofi/wofi/fzf)
 themectl next | prev                # durchschalten
 themectl random                     # zufälliges Theme (nie das aktive)
 themectl random --mode dark nord    # zufällig unter den dunklen mit "nord" im Namen
+themectl delete                     # aktives Theme löschen (wechselt vorher zum nächsten)
+themectl delete forest              # bestimmtes Theme löschen
 ```
 
 Eigenes Theme aus Farben:
@@ -72,6 +74,8 @@ Das Fenster läuft mit Quickshell (`qs`), das DMS ohnehin mitbringt. Es hat zwei
 Die Farben des Fensters kommen vom aktiven Theme. Im Leisten-Widget öffnet der Knopf „Theme Galerie öffnen“ oben im Popup die App.
 
 Zufälliges Theme: In der Galerie-App gibt es den Knopf „Zufall“ (oder Strg+R), er beachtet den Filter. Im Leisten-Widget sitzt ein Würfel neben „Theme Galerie öffnen“, und im Launcher (`~`) steht „Zufälliges Theme“ ganz oben.
+
+Theme löschen: Im Launcher (`~`, also Super+Alt+T) steht oben (direkt nach „Zufälliges Theme“) „Aktives Theme löschen“. Nach Enter öffnet sich der Launcher gleich wieder mit der Rückfrage „Ja, … löschen“ / „Abbrechen“. Nach einem Update das Plugin neu laden: `dms ipc call plugins reload themeSwitcher`. Nach dem Bestätigen wird erst zum nächsten Theme gewechselt und dann das alte gelöscht.
 
 ## Hotkeys (Hyprland-Lua)
 

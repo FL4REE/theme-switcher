@@ -19,6 +19,12 @@ Item {
     property bool loaded: false
     property double lastRefresh: 0
 
+    // Löschen in zwei Schritten: "Aktives Theme löschen" merkt sich das Theme
+    // und öffnet den Launcher erneut mit der Rückfrage.
+    property string pendingDelete: ""
+    property string pendingDeleteName: ""
+    property double pendingDeleteAt: 0
+
     signal itemsChanged()
 
     Component.onCompleted: {
@@ -57,6 +63,14 @@ Item {
         }
     }
 
+    // Der Launcher schließt sich nach jeder Auswahl; für die Rückfrage
+    // öffnen wir ihn kurz danach wieder mit dem Trigger.
+    Timer {
+        id: reopenTimer
+        interval: 250
+        onTriggered: Quickshell.execDetached(["dms", "ipc", "call", "spotlight", "openQuery", root.trigger])
+    }
+
     function refresh() {
         if (!listProc.running)
             listProc.running = true
@@ -86,6 +100,24 @@ Item {
             }]
 
         const q = (query || "").toLowerCase().trim()
+
+        // Rückfrage vor dem Löschen (gilt 20 Sekunden)
+        if (pendingDelete.length > 0 && Date.now() - pendingDeleteAt < 20000)
+            return [{
+                name: "Ja, „" + pendingDeleteName + "“ löschen",
+                icon: "material:delete_forever",
+                comment: "Enter bestätigt · danach wird zum nächsten Theme gewechselt",
+                action: "confirmdelete:" + pendingDelete,
+                categories: ["Themes"]
+            }, {
+                name: "Abbrechen",
+                icon: "material:close",
+                comment: "Theme behalten",
+                action: "canceldelete:",
+                categories: ["Themes"]
+            }]
+        pendingDelete = ""
+
         const items = []
         for (const t of themes) {
             const hay = (t.name + " " + t.id + " " + t.source).toLowerCase()
@@ -114,6 +146,17 @@ Item {
                 categories: ["Themes"],
                 keywords: ["zufall", "random"]
             })
+        // Löschen-Eintrag für das aktive Theme (oben, direkt nach Zufall, mit Rückfrage)
+        const active = themes.find(t => t.current)
+        if (active && (q.length === 0 || ("löschen delete entfernen " + active.name + " " + active.id).toLowerCase().includes(q)))
+            items.splice(items.length > 0 && items[0].action.startsWith("random:") ? 1 : 0, 0, {
+                name: "Aktives Theme löschen",
+                icon: "material:delete",
+                comment: active.name + " gefällt nicht? Löschen (mit Rückfrage)",
+                action: "delete:" + active.id,
+                categories: ["Themes"],
+                keywords: ["löschen", "delete", "entfernen"]
+            })
         return items
     }
 
@@ -129,6 +172,27 @@ Item {
             lastRefresh = 0
             if (typeof ToastService !== "undefined")
                 ToastService.showInfo("Theme", "Zufälliges Theme wird angewendet")
+            return
+        }
+        if (type === "delete") {
+            const t = themes.find(x => x.id === data)
+            pendingDelete = data
+            pendingDeleteName = t ? t.name : data
+            pendingDeleteAt = Date.now()
+            reopenTimer.restart()
+            return
+        }
+        if (type === "confirmdelete") {
+            Quickshell.execDetached([root.themectl, "delete", data])
+            pendingDelete = ""
+            themes = themes.filter(x => x.id !== data)
+            lastRefresh = 0
+            if (typeof ToastService !== "undefined")
+                ToastService.showInfo("Theme", pendingDeleteName + " wird gelöscht")
+            return
+        }
+        if (type === "canceldelete") {
+            pendingDelete = ""
             return
         }
         if (type !== "apply")

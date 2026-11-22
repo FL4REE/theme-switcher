@@ -146,10 +146,10 @@ Item {
                 categories: ["Themes"],
                 keywords: ["zufall", "random"]
             })
-        // Löschen-Eintrag für das aktive Theme (ganz unten, mit Rückfrage)
+        // Löschen-Eintrag für das aktive Theme (oben, direkt nach Zufall, mit Rückfrage)
         const active = themes.find(t => t.current)
         if (active && (q.length === 0 || ("löschen delete entfernen " + active.name + " " + active.id).toLowerCase().includes(q)))
-            items.push({
+            items.splice(items.length > 0 && items[0].action.startsWith("random:") ? 1 : 0, 0, {
                 name: "Aktives Theme löschen",
                 icon: "material:delete",
                 comment: active.name + " gefällt nicht? Löschen (mit Rückfrage)",

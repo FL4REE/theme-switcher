@@ -75,7 +75,7 @@ Die Farben des Fensters kommen vom aktiven Theme. Im Leisten-Widget öffnet der 
 
 Zufälliges Theme: In der Galerie-App gibt es den Knopf „Zufall“ (oder Strg+R), er beachtet den Filter. Im Leisten-Widget sitzt ein Würfel neben „Theme Galerie öffnen“, und im Launcher (`~`) steht „Zufälliges Theme“ ganz oben.
 
-Theme löschen: Im Launcher (`~`, also Super+Alt+T) steht ganz unten „Aktives Theme löschen“. Nach Enter öffnet sich der Launcher gleich wieder mit der Rückfrage „Ja, … löschen“ / „Abbrechen“. Nach dem Bestätigen wird erst zum nächsten Theme gewechselt und dann das alte gelöscht.
+Theme löschen: Im Launcher (`~`, also Super+Alt+T) steht oben (direkt nach „Zufälliges Theme“) „Aktives Theme löschen“. Nach Enter öffnet sich der Launcher gleich wieder mit der Rückfrage „Ja, … löschen“ / „Abbrechen“. Nach einem Update das Plugin neu laden: `dms ipc call plugins reload themeSwitcher`. Nach dem Bestätigen wird erst zum nächsten Theme gewechselt und dann das alte gelöscht.
 
 ## Hotkeys (Hyprland-Lua)
 

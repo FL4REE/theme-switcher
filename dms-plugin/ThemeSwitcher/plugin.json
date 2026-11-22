@@ -1,8 +1,8 @@
 {
     "id": "themeSwitcher",
     "name": "Theme Switcher",
-    "description": "Gespeicherte themectl-Themes im Launcher suchen und anwenden",
-    "version": "0.2.0",
+    "description": "Gespeicherte themectl-Themes im Launcher suchen, anwenden und löschen",
+    "version": "0.3.0",
     "license": "MIT",
     "author": "Erik (FL4REE)",
     "icon": "palette",
